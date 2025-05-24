@@ -277,18 +277,32 @@ class PeriodDialog(QDialog):
         super().__init__(parent, Qt.WindowType.Window)
         self.parent_widget = parent
         self.setWindowTitle("Period Tracking")
-        self.setMinimumSize(300, 400)
+        self.setMinimumSize(400, 600)
         
         layout = QVBoxLayout(self)
         
-        # Calendar widget
-        self.calendar = QCalendarWidget()
-        layout.addWidget(self.calendar)
+        # Date selection frame
+        date_frame = QFrame()
+        date_layout = QVBoxLayout(date_frame)
+        
+        # Start date selection
+        start_date_label = QLabel("Start Date:")
+        date_layout.addWidget(start_date_label)
+        self.start_calendar = QCalendarWidget()
+        date_layout.addWidget(self.start_calendar)
+        
+        # End date selection
+        end_date_label = QLabel("End Date:")
+        date_layout.addWidget(end_date_label)
+        self.end_calendar = QCalendarWidget()
+        date_layout.addWidget(self.end_calendar)
         
         # Record button
-        record_button = QPushButton("Record This Date")
-        record_button.clicked.connect(self.record_date)
-        layout.addWidget(record_button)
+        record_button = QPushButton("Record Period")
+        record_button.clicked.connect(self.record_period)
+        date_layout.addWidget(record_button)
+        
+        layout.addWidget(date_frame)
         
         # History label
         history_label = QLabel("History:")
@@ -307,34 +321,75 @@ class PeriodDialog(QDialog):
         self.load_history()
     
     def load_history(self):
-        records = self.parent_widget.data['period_records'] if hasattr(self.parent_widget, 'data') else []
+        records = self.parent_widget.data.get('period_records', [])
         if not records:
             label = QLabel("No records yet")
             label.setStyleSheet("color: gray;")
             self.history_layout.addWidget(label)
         else:
-            # Sort records by date, newest first
-            records.sort(reverse=True)
-            for date in records:
-                label = QLabel(date)
-                self.history_layout.addWidget(label)
+            # Sort records by start date
+            records.sort(key=lambda x: x['start_date'], reverse=True)
+            for record in records:
+                # Create a frame for each record
+                record_frame = QFrame()
+                record_layout = QHBoxLayout(record_frame)
+                
+                # Date label
+                label = QLabel(f"From {record['start_date']} to {record['end_date']}")
+                record_layout.addWidget(label)
+                
+                # Delete button
+                delete_btn = QPushButton("Delete")
+                delete_btn.clicked.connect(lambda checked, r=record: self.delete_record(r))
+                record_layout.addWidget(delete_btn)
+                
+                self.history_layout.addWidget(record_frame)
     
-    def record_date(self):
-        selected_date = self.calendar.selectedDate().toString("yyyy-MM-dd")
-        if selected_date not in self.parent_widget.data['period_records']:
-            self.parent_widget.data['period_records'].append(selected_date)
+    def delete_record(self, record):
+        if record in self.parent_widget.data['period_records']:
+            self.parent_widget.data['period_records'].remove(record)
             self.parent_widget.save_data()
             
-            # Clear "No records" label if it exists
+            # Clear and reload history
             while self.history_layout.count():
                 item = self.history_layout.takeAt(0)
                 if item.widget():
                     item.widget().deleteLater()
             
-            # Reload history
             self.load_history()
-            
-            QMessageBox.information(self, "Success", "Date recorded successfully!")
+            QMessageBox.information(self, "Success", "Record deleted successfully!")
+    
+    def record_period(self):
+        start_date = self.start_calendar.selectedDate().toString("yyyy-MM-dd")
+        end_date = self.end_calendar.selectedDate().toString("yyyy-MM-dd")
+        
+        # Validate dates
+        if start_date > end_date:
+            QMessageBox.warning(self, "Invalid Dates", "Start date cannot be after end date!")
+            return
+        
+        # Create new record
+        new_record = {
+            'start_date': start_date,
+            'end_date': end_date
+        }
+        
+        # Initialize period_records if it doesn't exist
+        if 'period_records' not in self.parent_widget.data:
+            self.parent_widget.data['period_records'] = []
+        
+        # Add the new record
+        self.parent_widget.data['period_records'].append(new_record)
+        self.parent_widget.save_data()
+        
+        # Clear and reload history
+        while self.history_layout.count():
+            item = self.history_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+        
+        self.load_history()
+        QMessageBox.information(self, "Success", "Period recorded successfully!")
 
 class DesktopPet(QWidget):
     def __init__(self):
