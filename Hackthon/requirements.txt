@@ -1,2 +1,4 @@
-Pillow==10.2.0
-tkcalendar==1.6.1 
+pillow>=9.0.0
+tkcalendar>=1.6.1
+pynput>=1.7.6
+PySimpleGUI>=4.60.0 
