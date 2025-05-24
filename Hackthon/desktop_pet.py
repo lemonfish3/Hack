@@ -5,10 +5,11 @@ from PySide6.QtWidgets import (QApplication, QLabel, QWidget, QMenu, QSystemTray
                               QVBoxLayout, QHBoxLayout, QPushButton, QSpinBox, QLineEdit,
                               QScrollArea, QFrame, QCheckBox, QTextEdit)
 from PySide6.QtCore import Qt, QPoint, QTimer, QDateTime, QTime
-from PySide6.QtGui import QMovie, QMouseEvent, QCursor, QAction, QFont
+from PySide6.QtGui import QMovie, QMouseEvent, QCursor, QAction, QFont, QPalette, QColor
 import json
 import os
 from datetime import datetime, timedelta
+from ui_style import apply_light_purple_theme  # Import the UI styling
 
 # 确保数据目录存在
 DATA_DIR = os.path.join(os.path.expanduser('~'), '.desktop_pet')
@@ -225,79 +226,35 @@ class NotesDialog(ScrollableDialog):
         layout.addWidget(text_label)
         
         delete_btn = QPushButton("Delete")
+        delete_btn.clicked.connect(lambda: self.delete_note(note, frame))
         layout.addWidget(delete_btn)
         
         self.list_layout.addWidget(frame)
 
-class TimerDialog(QDialog):
-    def __init__(self, parent=None):
-        super().__init__(parent, Qt.WindowType.Window)
-        self.setWindowTitle('Timer')
-        layout = QVBoxLayout()
-        
-        # Time input
-        time_layout = QHBoxLayout()
-        self.minutes_input = QSpinBox()
-        self.minutes_input.setRange(1, 60)
-        self.minutes_input.setValue(25)
-        time_layout.addWidget(QLabel("Minutes:"))
-        time_layout.addWidget(self.minutes_input)
-        layout.addLayout(time_layout)
-        
-        # Timer display
-        self.time_label = QLabel('00:00')
-        layout.addWidget(self.time_label)
-        
-        # Button layout
-        button_layout = QHBoxLayout()
-        
-        # Start button
-        self.start_button = QPushButton('Start')
-        self.start_button.clicked.connect(self.start_timer)
-        button_layout.addWidget(self.start_button)
-        
-        # Close button
-        close_button = QPushButton('Close')
-        close_button.clicked.connect(self.close)
-        button_layout.addWidget(close_button)
-        
-        layout.addLayout(button_layout)
-        
-        self.setLayout(layout)
-        
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update_timer)
-        self.remaining_seconds = 0
-
-    def closeEvent(self, event):
-        """Handle window close event"""
-        self.timer.stop()
-        self.time_label.setText('00:00')
-        self.start_button.setEnabled(True)
-        self.remaining_seconds = 0
-        event.accept()
-        
-    def start_timer(self):
-        self.remaining_seconds = self.minutes_input.value() * 60
-        self.timer.start(1000)
-        self.start_button.setEnabled(False)
-        
-    def update_timer(self):
-        if self.remaining_seconds > 0:
-            self.remaining_seconds -= 1
-            minutes = self.remaining_seconds // 60
-            seconds = self.remaining_seconds % 60
-            self.time_label.setText(f'{minutes:02d}:{seconds:02d}')
-        else:
-            self.timer.stop()
-            self.start_button.setEnabled(True)
-            QMessageBox.information(self, "Timer", "Time's up!")
+    def delete_note(self, note, frame):
+        if note in self.parent_widget.data['notes']:
+            self.parent_widget.data['notes'].remove(note)
+            self.parent_widget.save_data()
+            frame.deleteLater()
+            
+            # Show "No notes" if list is empty
+            if not self.parent_widget.data['notes']:
+                label = QLabel("No notes")
+                label.setStyleSheet("color: gray;")
+                self.list_layout.addWidget(label)
 
 class SettingsDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent, Qt.WindowType.Window)  # 使用独立窗口
         self.setWindowTitle('Settings')
         layout = QVBoxLayout()
+        
+        # Mouse following setting
+        follow_layout = QHBoxLayout()
+        self.follow_checkbox = QCheckBox("Enable Mouse Following")
+        self.follow_checkbox.setChecked(parent.follow_mouse if parent else True)
+        follow_layout.addWidget(self.follow_checkbox)
+        layout.addLayout(follow_layout)
         
         # Speed setting
         speed_layout = QHBoxLayout()
@@ -383,6 +340,9 @@ class DesktopPet(QWidget):
     def __init__(self):
         super().__init__()
         
+        # Set object name for styling
+        self.setObjectName("DesktopPet")
+        
         # Remove window frame and keep on top
         self.setWindowFlags(
             Qt.WindowType.FramelessWindowHint |  # No frame
@@ -392,9 +352,15 @@ class DesktopPet(QWidget):
         
         # Enable transparency
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        # Explicitly set transparent palette for the main window
+        transparent_palette = QPalette()
+        transparent_palette.setColor(QPalette.Window, QColor(0, 0, 0, 0))
+        self.setPalette(transparent_palette)
         
         # Create label for the pet
         self.pet_label = QLabel(self)
+        self.pet_label.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.pet_label.setStyleSheet("background: transparent;")
         
         # Initialize states and movies
         self.current_state = 'idle'
@@ -412,13 +378,14 @@ class DesktopPet(QWidget):
         self.move_timer = QTimer(self)
         self.move_timer.timeout.connect(self.move_to_target)
         self.move_speed = 5
+        self.follow_mouse = True  # Add mouse following state
         
         # Initialize data storage
         self.data_file = os.path.join(DATA_DIR, 'pet_data.json')
         self.load_data()
         
         # Store dialog instances
-        self.timer_dialog = None
+        # self.timer_dialog = None  # Commented out timer dialog
         self.settings_dialog = None
         self.reminder_dialog = None
         self.notes_dialog = None
@@ -495,7 +462,7 @@ class DesktopPet(QWidget):
     
     def check_global_mouse(self):
         """Check global mouse position and handle following behavior"""
-        if self.dragging:
+        if self.dragging or not self.follow_mouse:  # Check if following is enabled
             return
             
         cursor_pos = QCursor.pos()
@@ -551,9 +518,9 @@ class DesktopPet(QWidget):
 
     def cleanup(self):
         """Clean up resources and save data"""
-        if self.timer_dialog:
-            self.timer_dialog.timer.stop()  # Make sure to stop the timer
-            self.timer_dialog.close()
+        # if self.timer_dialog:  # Commented out timer cleanup
+        #     self.timer_dialog.timer.stop()  # Make sure to stop the timer
+        #     self.timer_dialog.close()
         if self.settings_dialog:
             self.settings_dialog.close()
         if self.reminder_dialog:
@@ -586,7 +553,7 @@ class DesktopPet(QWidget):
         reminders_menu.addAction("Manage Reminders", self.show_reminders)
         
         # Timer
-        menu.addAction("Timer", self.show_timer)
+        # menu.addAction("Timer", self.show_timer)  # Commented out timer menu item
         
         # Settings
         menu.addAction("Settings", self.show_settings)
@@ -616,19 +583,13 @@ class DesktopPet(QWidget):
         self.period_dialog.show()
         self.period_dialog.raise_()
 
-    def show_timer(self):
-        """Show timer dialog"""
-        if not self.timer_dialog:
-            self.timer_dialog = TimerDialog(None)  # Create as independent window
-        self.timer_dialog.show()
-        self.timer_dialog.raise_()
-
     def show_settings(self):
         """Show settings dialog"""
         if not self.settings_dialog:
             self.settings_dialog = SettingsDialog(self)
         if self.settings_dialog.exec() == QDialog.DialogCode.Accepted:
             self.move_speed = self.settings_dialog.speed_input.value()
+            self.follow_mouse = self.settings_dialog.follow_checkbox.isChecked()
 
     def check_reminders(self):
         """Check for due reminders"""
@@ -671,6 +632,9 @@ if __name__ == '__main__':
     signal.signal(signal.SIGTERM, signal_handler)
     
     app = QApplication(sys.argv)
+    
+    # Apply the light purple theme
+    apply_light_purple_theme()
     
     # Suppress native menu bar on macOS
     if sys.platform == 'darwin':
