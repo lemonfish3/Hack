@@ -3,14 +3,13 @@ import signal
 from PySide6.QtWidgets import (QApplication, QLabel, QWidget, QMenu, QSystemTrayIcon,
                               QCalendarWidget, QInputDialog, QMessageBox, QDialog,
                               QVBoxLayout, QHBoxLayout, QPushButton, QSpinBox, QLineEdit,
-                              QScrollArea, QFrame, QCheckBox, QTextEdit, QMainWindow, QTabWidget)
-from PySide6.QtCore import Qt, QPoint, QTimer, QDateTime, QTime, QSize
-from PySide6.QtGui import QMovie, QMouseEvent, QCursor, QAction, QFont, QPalette, QColor, QIcon
+                              QScrollArea, QFrame, QCheckBox, QTextEdit)
+from PySide6.QtCore import Qt, QPoint, QTimer, QDateTime, QTime
+from PySide6.QtGui import QMovie, QMouseEvent, QCursor, QAction, QFont, QPalette, QColor
 import json
 import os
 from datetime import datetime, timedelta
-from ui_style import apply_purple_theme  # Import the UI styling
-from pathlib import Path
+from ui_style import apply_light_purple_theme  # Import the UI styling
 
 # 确保数据目录存在
 DATA_DIR = os.path.join(os.path.expanduser('~'), '.desktop_pet')
@@ -168,79 +167,81 @@ class ReminderDialog(ScrollableDialog):
                 label.setStyleSheet("color: gray;")
                 self.list_layout.addWidget(label)
 
-class NotesDialog(QDialog):
-    def __init__(self, notes, parent=None):
-        super().__init__(parent)
-        self.notes = notes
-        self.setup_ui()
+class NotesDialog(ScrollableDialog):
+    def __init__(self, parent=None):
+        super().__init__("Notes", parent)
+        self.parent_widget = parent
         
-    def setup_ui(self):
-        self.setWindowTitle("Notes")
-        layout = QVBoxLayout(self)
+        # List frame for notes
+        self.list_frame = QFrame()
+        self.list_layout = QVBoxLayout(self.list_frame)
+        self.content_layout.addWidget(self.list_frame)
         
-        # Note input
-        self.note_input = QTextEdit()
-        layout.addWidget(QLabel("New Note:"))
-        layout.addWidget(self.note_input)
+        # Input frame
+        input_frame = QFrame()
+        input_layout = QVBoxLayout(input_frame)
         
-        # Add note button
-        add_button = QPushButton("Add Note")
-        add_button.clicked.connect(self.add_note)
-        layout.addWidget(add_button)
+        self.text_edit = QTextEdit()
+        input_layout.addWidget(self.text_edit)
         
-        # Notes list
-        layout.addWidget(QLabel("Your Notes:"))
-        self.notes_list = QTextEdit()
-        self.notes_list.setReadOnly(True)
-        self.update_notes()
-        layout.addWidget(self.notes_list)
+        save_button = QPushButton("Save Note")
+        save_button.clicked.connect(self.save_note)
+        input_layout.addWidget(save_button)
         
-        # Delete button
-        delete_button = QPushButton("Delete Selected Note")
-        delete_button.clicked.connect(self.delete_note)
-        layout.addWidget(delete_button)
+        self.content_layout.addWidget(input_frame)
         
-        # Close button
-        close_button = QPushButton("Close")
-        close_button.clicked.connect(self.accept)
-        layout.addWidget(close_button)
+        # Load existing notes
+        self.load_notes()
+    
+    def load_notes(self):
+        notes = self.parent_widget.data['notes'] if hasattr(self.parent_widget, 'data') else []
+        if not notes:
+            label = QLabel("No notes")
+            label.setStyleSheet("color: gray;")
+            self.list_layout.addWidget(label)
+        else:
+            for note in notes:
+                self.add_note_widget(note)
+    
+    def save_note(self):
+        text = self.text_edit.toPlainText().strip()
+        if text:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            note = {"timestamp": timestamp, "text": text}
+            self.parent_widget.data['notes'].append(note)
+            self.parent_widget.save_data()
+            self.add_note_widget(note)
+            self.text_edit.clear()
+    
+    def add_note_widget(self, note):
+        frame = QFrame()
+        layout = QVBoxLayout(frame)
         
-    def add_note(self):
-        note_text = self.note_input.toPlainText().strip()
-        if note_text:
-            self.notes.append({
-                'text': note_text,
-                'date': datetime.now().isoformat()
-            })
-            self.note_input.clear()
-            self.update_notes()
+        timestamp_label = QLabel(note['timestamp'])
+        timestamp_label.setStyleSheet("color: gray;")
+        layout.addWidget(timestamp_label)
+        
+        text_label = QLabel(note['text'])
+        text_label.setWordWrap(True)
+        layout.addWidget(text_label)
+        
+        delete_btn = QPushButton("Delete")
+        delete_btn.clicked.connect(lambda: self.delete_note(note, frame))
+        layout.addWidget(delete_btn)
+        
+        self.list_layout.addWidget(frame)
+
+    def delete_note(self, note, frame):
+        if note in self.parent_widget.data['notes']:
+            self.parent_widget.data['notes'].remove(note)
+            self.parent_widget.save_data()
+            frame.deleteLater()
             
-    def delete_note(self):
-        selected_text = self.notes_list.textCursor().selectedText()
-        if not selected_text:
-            QMessageBox.warning(self, "No Selection", "Please select a note to delete.")
-            return
-            
-        reply = QMessageBox.question(
-            self, 'Delete Note',
-            'Are you sure you want to delete this note?',
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
-        )
-        
-        if reply == QMessageBox.Yes:
-            for i, note in enumerate(self.notes):
-                if note['text'] in selected_text:
-                    del self.notes[i]
-                    self.update_notes()
-                    break
-                    
-    def update_notes(self):
-        notes_text = ""
-        for note in sorted(self.notes, key=lambda x: x['date'], reverse=True):
-            date = datetime.fromisoformat(note['date']).strftime('%Y-%m-%d %H:%M')
-            notes_text += f"[{date}]\n{note['text']}\n\n"
-        self.notes_list.setText(notes_text)
+            # Show "No notes" if list is empty
+            if not self.parent_widget.data['notes']:
+                label = QLabel("No notes")
+                label.setStyleSheet("color: gray;")
+                self.list_layout.addWidget(label)
 
 class SettingsDialog(QDialog):
     def __init__(self, parent=None):
@@ -276,26 +277,19 @@ class PeriodDialog(QDialog):
         super().__init__(parent, Qt.WindowType.Window)
         self.parent_widget = parent
         self.setWindowTitle("Period Tracking")
-        self.setMinimumSize(800, 600)  # Increased width to accommodate both calendars
+        self.setMinimumSize(500, 600)  # Adjusted size for single calendar
         
         layout = QVBoxLayout(self)
         layout.setSpacing(20)
         
         # Date selection frame
         date_frame = QFrame()
-        date_layout = QHBoxLayout(date_frame)  # Changed to horizontal layout for side-by-side calendars
-        date_layout.setSpacing(20)
+        date_layout = QVBoxLayout(date_frame)
         
-        # Start date selection
-        start_frame = QFrame()
-        start_layout = QVBoxLayout(start_frame)
-        start_date_label = QLabel("Start Date:")
-        start_date_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #6A5ACD;")
-        start_layout.addWidget(start_date_label)
-        
-        self.start_calendar = QCalendarWidget()
-        self.start_calendar.setMinimumSize(350, 350)
-        self.start_calendar.setStyleSheet("""
+        # Calendar with styling
+        self.calendar = QCalendarWidget()
+        self.calendar.setMinimumSize(400, 400)
+        self.calendar.setStyleSheet("""
             QCalendarWidget {
                 background-color: #E6E6FA;
                 border: 1px solid #C8C8E6;
@@ -324,49 +318,7 @@ class PeriodDialog(QDialog):
                 padding: 3px;
             }
         """)
-        start_layout.addWidget(self.start_calendar)
-        date_layout.addWidget(start_frame)
-        
-        # End date selection
-        end_frame = QFrame()
-        end_layout = QVBoxLayout(end_frame)
-        end_date_label = QLabel("End Date:")
-        end_date_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #6A5ACD;")
-        end_layout.addWidget(end_date_label)
-        
-        self.end_calendar = QCalendarWidget()
-        self.end_calendar.setMinimumSize(350, 350)
-        self.end_calendar.setStyleSheet("""
-            QCalendarWidget {
-                background-color: #E6E6FA;
-                border: 1px solid #C8C8E6;
-                border-radius: 5px;
-            }
-            QCalendarWidget QToolButton {
-                color: #6A5ACD;
-                background-color: transparent;
-                border: none;
-                font-size: 16px;
-                font-weight: bold;
-                padding: 5px;
-            }
-            QCalendarWidget QToolButton:hover {
-                background-color: #D8D8F0;
-                border-radius: 3px;
-            }
-            QCalendarWidget QMenu {
-                background-color: #E6E6FA;
-                border: 1px solid #C8C8E6;
-            }
-            QCalendarWidget QSpinBox {
-                background-color: #FFFFFF;
-                border: 1px solid #C8C8E6;
-                border-radius: 3px;
-                padding: 3px;
-            }
-        """)
-        end_layout.addWidget(self.end_calendar)
-        date_layout.addWidget(end_frame)
+        date_layout.addWidget(self.calendar)
         
         # Record button with styling
         record_button = QPushButton("Record Period")
@@ -377,30 +329,22 @@ class PeriodDialog(QDialog):
                 font-size: 14px;
                 padding: 10px;
                 border-radius: 5px;
-                min-width: 200px;
             }
             QPushButton:hover {
                 background-color: #5A4ABD;
             }
         """)
         record_button.clicked.connect(self.record_period)
-        
-        # Center the record button
-        button_frame = QFrame()
-        button_layout = QHBoxLayout(button_frame)
-        button_layout.addStretch()
-        button_layout.addWidget(record_button)
-        button_layout.addStretch()
+        date_layout.addWidget(record_button)
         
         layout.addWidget(date_frame)
-        layout.addWidget(button_frame)
         
         # History section
         history_frame = QFrame()
         history_layout = QVBoxLayout(history_frame)
         
         history_label = QLabel("History:")
-        history_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #6A5ACD;")
+        history_label.setStyleSheet("font-weight: bold; font-size: 14px;")
         history_layout.addWidget(history_label)
         
         # Scrollable area for history
@@ -410,7 +354,6 @@ class PeriodDialog(QDialog):
             QScrollArea {
                 border: 1px solid #C8C8E6;
                 border-radius: 5px;
-                background-color: white;
             }
         """)
         history_layout.addWidget(scroll)
@@ -429,7 +372,7 @@ class PeriodDialog(QDialog):
         records = self.parent_widget.data.get('period_records', [])
         if not records:
             label = QLabel("No records yet")
-            label.setStyleSheet("color: gray; padding: 10px;")
+            label.setStyleSheet("color: gray;")
             self.history_layout.addWidget(label)
         else:
             # Sort records by start date
@@ -437,33 +380,14 @@ class PeriodDialog(QDialog):
             for record in records:
                 # Create a frame for each record
                 record_frame = QFrame()
-                record_frame.setStyleSheet("""
-                    QFrame {
-                        background-color: #F0F0FF;
-                        border-radius: 5px;
-                        padding: 5px;
-                    }
-                """)
                 record_layout = QHBoxLayout(record_frame)
                 
-                # Date label with improved formatting
+                # Date label
                 label = QLabel(f"From {record['start_date']} to {record['end_date']}")
-                label.setStyleSheet("color: #333; font-size: 13px;")
                 record_layout.addWidget(label)
                 
                 # Delete button
                 delete_btn = QPushButton("Delete")
-                delete_btn.setStyleSheet("""
-                    QPushButton {
-                        background-color: #FF6B6B;
-                        color: white;
-                        border-radius: 3px;
-                        padding: 5px 10px;
-                    }
-                    QPushButton:hover {
-                        background-color: #FF5252;
-                    }
-                """)
                 delete_btn.clicked.connect(lambda checked, r=record: self.delete_record(r))
                 record_layout.addWidget(delete_btn)
                 
@@ -484,18 +408,12 @@ class PeriodDialog(QDialog):
             QMessageBox.information(self, "Success", "Record deleted successfully!")
     
     def record_period(self):
-        start_date = self.start_calendar.selectedDate().toString("yyyy-MM-dd")
-        end_date = self.end_calendar.selectedDate().toString("yyyy-MM-dd")
-        
-        # Validate dates
-        if start_date > end_date:
-            QMessageBox.warning(self, "Invalid Dates", "Start date cannot be after end date!")
-            return
+        selected_date = self.calendar.selectedDate().toString("yyyy-MM-dd")
         
         # Create new record
         new_record = {
-            'start_date': start_date,
-            'end_date': end_date
+            'start_date': selected_date,
+            'end_date': selected_date
         }
         
         # Initialize period_records if it doesn't exist
@@ -515,492 +433,315 @@ class PeriodDialog(QDialog):
         self.load_history()
         QMessageBox.information(self, "Success", "Period recorded successfully!")
 
-class DesktopPet(QMainWindow):
+class DesktopPet(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
-        self.setAttribute(Qt.WA_TranslucentBackground)
         
-        # Initialize data directory
-        self.data_dir = os.getenv('DESKTOP_PET_DATA', os.path.expanduser('~/.desktop_pet'))
-        os.makedirs(self.data_dir, exist_ok=True)
+        # Set object name for styling
+        self.setObjectName("DesktopPet")
         
-        # Load settings
-        self.settings = self.load_data('settings.json', {
-            'pet_size': 100,
-            'animation_speed': 100,
-            'stay_on_top': True,
-            'show_notifications': True
-        })
+        # Remove window frame and keep on top
+        self.setWindowFlags(
+            Qt.WindowType.FramelessWindowHint |  # No frame
+            Qt.WindowType.WindowStaysOnTopHint | # Always on top
+            Qt.WindowType.Tool                   # No taskbar icon
+        )
         
-        # Initialize animation states
+        # Enable transparency
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        # Explicitly set transparent palette for the main window
+        transparent_palette = QPalette()
+        transparent_palette.setColor(QPalette.Window, QColor(0, 0, 0, 0))
+        self.setPalette(transparent_palette)
+        
+        # Create label for the pet
+        self.pet_label = QLabel(self)
+        self.pet_label.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.pet_label.setStyleSheet("background: transparent;")
+        
+        # Initialize states and movies
         self.current_state = 'idle'
-        self.animations = self.load_animations()
+        self.movies = self.load_animations()
+        self.current_movie = self.movies['idle']
         
-        # Setup UI
-        self.setup_pet()
-        self.setup_tray()
-        self.setup_context_menu()
+        # Set up the pet display
+        self.pet_label.setMovie(self.current_movie)
+        self.current_movie.start()
         
-        # Load data
-        self.periods = self.load_data('periods.json', [])
-        self.notes = self.load_data('notes.json', [])
-        self.reminders = self.load_data('reminders.json', [])
+        # Initialize movement variables
+        self.dragging = False
+        self.offset = QPoint()
+        self.target_pos = None
+        self.move_timer = QTimer(self)
+        self.move_timer.timeout.connect(self.move_to_target)
+        self.move_speed = 5
+        self.follow_mouse = True  # Add mouse following state
         
-        # Setup timer for reminders
-        self.reminder_timer = QTimer()
+        # Initialize data storage
+        self.data_file = os.path.join(DATA_DIR, 'pet_data.json')
+        self.load_data()
+        
+        # Store dialog instances
+        # self.timer_dialog = None  # Commented out timer dialog
+        self.settings_dialog = None
+        self.reminder_dialog = None
+        self.notes_dialog = None
+        self.period_dialog = None
+        
+        # Set up reminder checker
+        self.reminder_timer = QTimer(self)
         self.reminder_timer.timeout.connect(self.check_reminders)
         self.reminder_timer.start(60000)  # Check every minute
         
+        # Set up global mouse tracking
+        self.global_timer = QTimer(self)
+        self.global_timer.timeout.connect(self.check_global_mouse)
+        self.global_timer.start(100)  # Check every 100ms
+        
+        # Show the widget
+        self.show()
+        self.adjustSize()
+    
     def load_animations(self):
         """Load all animation states"""
-        animations = {}
+        movies = {}
         for state in ['idle', 'happy', 'moving']:
             movie = QMovie(f"{state}.gif")
             if movie.isValid():
-                movie.setScaledSize(QSize(self.settings['pet_size'], self.settings['pet_size']))
-                movie.setSpeed(self.settings['animation_speed'])
-                animations[state] = movie
-        return animations
-        
-    def load_data(self, filename, default=None):
-        try:
-            with open(os.path.join(self.data_dir, filename), 'r') as f:
-                return json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            return default if default is not None else {}
-            
-    def save_data(self, filename, data):
-        with open(os.path.join(self.data_dir, filename), 'w') as f:
-            json.dump(data, f)
-            
-    def setup_pet(self):
-        self.central_widget = QWidget()
-        self.setCentralWidget(self.central_widget)
-        layout = QVBoxLayout(self.central_widget)
-        
-        # Pet animation
-        self.movie_label = QLabel()
-        self.movie_label.setAlignment(Qt.AlignCenter)
-        self.change_animation('idle')
-        
-        layout.addWidget(self.movie_label)
-        layout.setContentsMargins(0, 0, 0, 0)
-        
-        # Make window draggable
-        self.old_pos = None
-        self.movie_label.mousePressEvent = self.mousePressEvent
-        self.movie_label.mouseMoveEvent = self.mouseMoveEvent
-        
-    def change_animation(self, state):
-        """Change the pet's animation state"""
-        if state in self.animations and state != self.current_state:
-            self.current_state = state
-            self.movie_label.setMovie(self.animations[state])
-            self.animations[state].start()
-            
-    def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
-            self.old_pos = event.position().toPoint()
-            self.change_animation('happy')  # Change animation when clicked
-        elif event.button() == Qt.RightButton:
-            self.context_menu.popup(event.globalPosition().toPoint())
-            
-    def mouseMoveEvent(self, event):
-        if hasattr(self, 'old_pos'):
-            delta = event.position().toPoint() - self.old_pos
-            self.move(self.pos() + delta)
-            self.old_pos = event.position().toPoint()
-            self.change_animation('moving')  # Change animation while moving
-            
-    def mouseReleaseEvent(self, event):
-        if event.button() == Qt.LeftButton:
-            self.old_pos = None
-            self.change_animation('idle')  # Return to idle animation
-            
-    def setup_tray(self):
-        self.tray_icon = QSystemTrayIcon(self)
-        self.tray_icon.setIcon(QIcon("idle.gif"))
-        self.tray_icon.show()
-        
-        # Tray menu
-        tray_menu = QMenu()
-        
-        period_action = QAction("Period Tracking", self)
-        period_action.triggered.connect(self.show_period_tracker)
-        tray_menu.addAction(period_action)
-        
-        notes_action = QAction("Notes", self)
-        notes_action.triggered.connect(self.show_notes)
-        tray_menu.addAction(notes_action)
-        
-        reminders_action = QAction("Reminders", self)
-        reminders_action.triggered.connect(self.show_reminders)
-        tray_menu.addAction(reminders_action)
-        
-        settings_action = QAction("Settings", self)
-        settings_action.triggered.connect(self.show_settings)
-        tray_menu.addAction(settings_action)
-        
-        quit_action = QAction("Quit", self)
-        quit_action.triggered.connect(self.quit_application)
-        tray_menu.addAction(quit_action)
-        
-        self.tray_icon.setContextMenu(tray_menu)
-        
-    def setup_context_menu(self):
-        self.context_menu = QMenu(self)
-        
-        period_action = QAction("Period Tracking", self)
-        period_action.triggered.connect(self.show_period_tracker)
-        self.context_menu.addAction(period_action)
-        
-        notes_action = QAction("Notes", self)
-        notes_action.triggered.connect(self.show_notes)
-        self.context_menu.addAction(notes_action)
-        
-        reminders_action = QAction("Reminders", self)
-        reminders_action.triggered.connect(self.show_reminders)
-        self.context_menu.addAction(reminders_action)
-        
-        settings_action = QAction("Settings", self)
-        settings_action.triggered.connect(self.show_settings)
-        self.context_menu.addAction(settings_action)
-        
-    def show_period_tracker(self):
-        dialog = PeriodTrackerDialog(self.periods, self)
-        if dialog.exec_():
-            self.periods = dialog.periods
-            self.save_data('periods.json', self.periods)
-            
-    def show_notes(self):
-        dialog = NotesDialog(self.notes, self)
-        if dialog.exec_():
-            self.notes = dialog.notes
-            self.save_data('notes.json', self.notes)
-            
-    def show_reminders(self):
-        dialog = RemindersDialog(self.reminders, self)
-        if dialog.exec_():
-            self.reminders = dialog.reminders
-            self.save_data('reminders.json', self.reminders)
-            
-    def show_settings(self):
-        dialog = SettingsDialog(self.settings, self)
-        if dialog.exec_():
-            self.settings = dialog.settings
-            self.save_data('settings.json', self.settings)
-            self.apply_settings()
-            
-    def apply_settings(self):
-        # Update animation sizes and speeds
-        for movie in self.animations.values():
-            movie.setScaledSize(QSize(self.settings['pet_size'], self.settings['pet_size']))
-            movie.setSpeed(self.settings['animation_speed'])
-        
-        if self.settings['stay_on_top']:
-            self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
+                movies[state] = movie
+            else:
+                # Create an empty movie as fallback
+                movies[state] = QMovie()
+        return movies
+    
+    def load_data(self):
+        """Load saved data"""
+        if os.path.exists(self.data_file):
+            with open(self.data_file, 'r') as f:
+                self.data = json.load(f)
         else:
-            self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint)
-        self.show()
+            self.data = {
+                'notes': [],
+                'period_records': [],
+                'reminders': []
+            }
+    
+    def save_data(self):
+        """Save data to file"""
+        with open(self.data_file, 'w') as f:
+            json.dump(self.data, f)
+    
+    def mousePressEvent(self, event: QMouseEvent):
+        """Handle mouse press events"""
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.dragging = True
+            self.offset = event.position().toPoint()
+            self.change_state('happy')
+    
+    def mouseMoveEvent(self, event: QMouseEvent):
+        """Handle mouse move events"""
+        if self.dragging:
+            new_pos = self.mapToGlobal(event.position().toPoint() - self.offset)
+            self.move(new_pos.x(), new_pos.y())
+    
+    def mouseReleaseEvent(self, event: QMouseEvent):
+        """Handle mouse release events"""
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.dragging = False
+            self.change_state('idle')
+    
+    def change_state(self, new_state):
+        """Change the pet's state and animation"""
+        if new_state != self.current_state and new_state in self.movies:
+            self.current_state = new_state
+            self.pet_label.setMovie(self.movies[new_state])
+            self.movies[new_state].start()
+    
+    def check_global_mouse(self):
+        """Check global mouse position and handle following behavior"""
+        if self.dragging or not self.follow_mouse:  # Check if following is enabled
+            return
+            
+        cursor_pos = QCursor.pos()
         
+        # Calculate target position (center pet on cursor)
+        target_x = cursor_pos.x() - self.width() // 2
+        target_y = cursor_pos.y() - self.height() // 2
+        
+        # Only follow if cursor is far enough
+        current_pos = self.pos()
+        dx = target_x - current_pos.x()
+        dy = target_y - current_pos.y()
+        distance = (dx * dx + dy * dy) ** 0.5
+        
+        if distance > 100:  # Only follow if cursor is more than 100 pixels away
+            self.target_pos = QPoint(target_x, target_y)
+            if self.current_state != 'moving':
+                self.change_state('moving')
+            
+            if not self.move_timer.isActive():
+                self.move_timer.start(50)
+    
+    def move_to_target(self):
+        """Move pet towards target position"""
+        if not self.target_pos:
+            return
+        
+        current_pos = self.pos()
+        dx = self.target_pos.x() - current_pos.x()
+        dy = self.target_pos.y() - current_pos.y()
+        distance = (dx * dx + dy * dy) ** 0.5
+        
+        if distance <= self.move_speed:
+            # Reached target
+            self.move(self.target_pos.x(), self.target_pos.y())
+            self.target_pos = None
+            self.move_timer.stop()
+            self.change_state('idle')
+        else:
+            # Move towards target
+            ratio = self.move_speed / distance
+            new_x = current_pos.x() + int(dx * ratio)
+            new_y = current_pos.y() + int(dy * ratio)
+            self.move(new_x, new_y)
+    
+    def closeEvent(self, event):
+        """Clean up when closing"""
+        self.global_timer.stop()
+        self.move_timer.stop()
+        self.reminder_timer.stop()
+        self.save_data()
+        super().closeEvent(event)
+
+    def cleanup(self):
+        """Clean up resources and save data"""
+        # if self.timer_dialog:  # Commented out timer cleanup
+        #     self.timer_dialog.timer.stop()  # Make sure to stop the timer
+        #     self.timer_dialog.close()
+        if self.settings_dialog:
+            self.settings_dialog.close()
+        if self.reminder_dialog:
+            self.reminder_dialog.close()
+        if self.notes_dialog:
+            self.notes_dialog.close()
+        if self.period_dialog:
+            self.period_dialog.close()
+        self.global_timer.stop()
+        self.move_timer.stop()
+        self.reminder_timer.stop()
+        self.save_data()
+        QApplication.quit()
+
+    def contextMenuEvent(self, event):
+        """Handle right-click menu"""
+        menu = QMenu(self)
+        
+        # Notes submenu
+        notes_menu = menu.addMenu("Notes")
+        notes_menu.addAction("Add Note", self.show_notes)
+        notes_menu.addAction("View Notes", self.show_notes)
+        
+        # Period tracking submenu
+        period_menu = menu.addMenu("Period Tracking")
+        period_menu.addAction("Manage Period Records", self.show_period_dialog)
+        
+        # Reminders submenu
+        reminders_menu = menu.addMenu("Reminders")
+        reminders_menu.addAction("Manage Reminders", self.show_reminders)
+        
+        # Timer
+        # menu.addAction("Timer", self.show_timer)  # Commented out timer menu item
+        
+        # Settings
+        menu.addAction("Settings", self.show_settings)
+        
+        # Exit option
+        menu.addSeparator()
+        menu.addAction("Exit", self.cleanup)
+        
+        menu.exec(event.globalPos())
+
+    def show_reminders(self):
+        if not self.reminder_dialog:
+            self.reminder_dialog = ReminderDialog(self)
+        self.reminder_dialog.show()
+        self.reminder_dialog.raise_()
+
+    def show_notes(self):
+        if not self.notes_dialog:
+            self.notes_dialog = NotesDialog(self)
+        self.notes_dialog.show()
+        self.notes_dialog.raise_()
+
+    def show_period_dialog(self):
+        """Show period tracking dialog"""
+        if not self.period_dialog:
+            self.period_dialog = PeriodDialog(self)
+        self.period_dialog.show()
+        self.period_dialog.raise_()
+
+    def show_settings(self):
+        """Show settings dialog"""
+        if not self.settings_dialog:
+            self.settings_dialog = SettingsDialog(self)
+        if self.settings_dialog.exec() == QDialog.DialogCode.Accepted:
+            self.move_speed = self.settings_dialog.speed_input.value()
+            self.follow_mouse = self.settings_dialog.follow_checkbox.isChecked()
+
     def check_reminders(self):
-        now = datetime.now()
-        for reminder in self.reminders:
-            reminder_time = datetime.fromisoformat(reminder['time'])
-            if not reminder['notified'] and now >= reminder_time:
-                if self.settings['show_notifications']:
-                    self.tray_icon.showMessage(
-                        "Reminder",
-                        reminder['text'],
-                        QSystemTrayIcon.Information,
-                        5000
-                    )
-                reminder['notified'] = True
-                self.save_data('reminders.json', self.reminders)
+        """Check for due reminders"""
+        current_time = datetime.now()
+        reminders_to_remove = []
+        
+        for reminder in self.data['reminders']:
+            if 'datetime' not in reminder:
+                continue
                 
-    def quit_application(self):
-        reply = QMessageBox.question(
-            self, 'Quit',
-            'Are you sure you want to quit?',
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
-        )
+            try:
+                reminder_time = datetime.strptime(reminder['datetime'], "%Y-%m-%d %H:%M:%S")
+                if reminder_time <= current_time:
+                    QMessageBox.information(None, "Reminder!", reminder['text'])
+                    reminders_to_remove.append(reminder)
+            except (ValueError, TypeError):
+                continue
         
-        if reply == QMessageBox.Yes:
-            QApplication.quit()
+        # Remove triggered reminders
+        for reminder in reminders_to_remove:
+            self.data['reminders'].remove(reminder)
+        
+        if reminders_to_remove:
+            self.save_data()
 
-class PeriodTrackerDialog(QDialog):
-    def __init__(self, periods, parent=None):
-        super().__init__(parent)
-        self.periods = periods
-        self.setup_ui()
-        
-    def setup_ui(self):
-        self.setWindowTitle("Period Tracker")
-        layout = QVBoxLayout(self)
-        
-        # Calendars
-        calendar_layout = QHBoxLayout()
-        
-        # Start date calendar
-        start_group = QWidget()
-        start_layout = QVBoxLayout(start_group)
-        start_layout.addWidget(QLabel("Start Date:"))
-        self.start_calendar = QCalendarWidget()
-        start_layout.addWidget(self.start_calendar)
-        calendar_layout.addWidget(start_group)
-        
-        # End date calendar
-        end_group = QWidget()
-        end_layout = QVBoxLayout(end_group)
-        end_layout.addWidget(QLabel("End Date:"))
-        self.end_calendar = QCalendarWidget()
-        end_layout.addWidget(self.end_calendar)
-        calendar_layout.addWidget(end_group)
-        
-        layout.addLayout(calendar_layout)
-        
-        # Add period button
-        add_button = QPushButton("Add Period")
-        add_button.clicked.connect(self.add_period)
-        layout.addWidget(add_button)
-        
-        # History
-        layout.addWidget(QLabel("History:"))
-        self.history_text = QTextEdit()
-        self.history_text.setReadOnly(True)
-        self.update_history()
-        layout.addWidget(self.history_text)
-        
-        # Delete button
-        delete_button = QPushButton("Delete Selected Period")
-        delete_button.clicked.connect(self.delete_period)
-        layout.addWidget(delete_button)
-        
-        # Close button
-        close_button = QPushButton("Close")
-        close_button.clicked.connect(self.accept)
-        layout.addWidget(close_button)
-        
-    def add_period(self):
-        start_date = self.start_calendar.selectedDate().toString(Qt.ISODate)
-        end_date = self.end_calendar.selectedDate().toString(Qt.ISODate)
-        
-        if start_date > end_date:
-            QMessageBox.warning(self, "Invalid Dates", "Start date must be before end date.")
-            return
-            
-        self.periods.append({
-            'start': start_date,
-            'end': end_date
-        })
-        self.update_history()
-        
-    def delete_period(self):
-        selected_text = self.history_text.textCursor().selectedText()
-        if not selected_text:
-            QMessageBox.warning(self, "No Selection", "Please select a period to delete.")
-            return
-            
-        reply = QMessageBox.question(
-            self, 'Delete Period',
-            'Are you sure you want to delete this period?',
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
-        )
-        
-        if reply == QMessageBox.Yes:
-            for i, period in enumerate(self.periods):
-                period_text = f"From {period['start']} to {period['end']}"
-                if period_text in selected_text:
-                    del self.periods[i]
-                    self.update_history()
-                    break
-                    
-    def update_history(self):
-        history = ""
-        for period in sorted(self.periods, key=lambda x: x['start'], reverse=True):
-            history += f"From {period['start']} to {period['end']}\n"
-        self.history_text.setText(history)
-
-class RemindersDialog(QDialog):
-    def __init__(self, reminders, parent=None):
-        super().__init__(parent)
-        self.reminders = reminders
-        self.setup_ui()
-        
-    def setup_ui(self):
-        self.setWindowTitle("Reminders")
-        layout = QVBoxLayout(self)
-        
-        # Reminder input
-        input_layout = QHBoxLayout()
-        self.reminder_input = QLineEdit()
-        input_layout.addWidget(QLabel("Reminder:"))
-        input_layout.addWidget(self.reminder_input)
-        layout.addLayout(input_layout)
-        
-        # Date and time input
-        datetime_layout = QHBoxLayout()
-        self.date_input = QCalendarWidget()
-        datetime_layout.addWidget(self.date_input)
-        
-        time_widget = QWidget()
-        time_layout = QVBoxLayout(time_widget)
-        time_layout.addWidget(QLabel("Time:"))
-        self.hour_input = QSpinBox()
-        self.hour_input.setRange(0, 23)
-        time_layout.addWidget(self.hour_input)
-        self.minute_input = QSpinBox()
-        self.minute_input.setRange(0, 59)
-        time_layout.addWidget(self.minute_input)
-        datetime_layout.addWidget(time_widget)
-        
-        layout.addLayout(datetime_layout)
-        
-        # Add reminder button
-        add_button = QPushButton("Add Reminder")
-        add_button.clicked.connect(self.add_reminder)
-        layout.addWidget(add_button)
-        
-        # Reminders list
-        layout.addWidget(QLabel("Your Reminders:"))
-        self.reminders_list = QTextEdit()
-        self.reminders_list.setReadOnly(True)
-        self.update_reminders()
-        layout.addWidget(self.reminders_list)
-        
-        # Delete button
-        delete_button = QPushButton("Delete Selected Reminder")
-        delete_button.clicked.connect(self.delete_reminder)
-        layout.addWidget(delete_button)
-        
-        # Close button
-        close_button = QPushButton("Close")
-        close_button.clicked.connect(self.accept)
-        layout.addWidget(close_button)
-        
-    def add_reminder(self):
-        reminder_text = self.reminder_input.text().strip()
-        if not reminder_text:
-            QMessageBox.warning(self, "Invalid Input", "Please enter a reminder text.")
-            return
-            
-        date = self.date_input.selectedDate().toPython()
-        time = datetime.now().replace(
-            hour=self.hour_input.value(),
-            minute=self.minute_input.value(),
-            second=0,
-            microsecond=0
-        ).time()
-        reminder_time = datetime.combine(date, time)
-        
-        if reminder_time < datetime.now():
-            QMessageBox.warning(self, "Invalid Time", "Reminder time must be in the future.")
-            return
-            
-        self.reminders.append({
-            'text': reminder_text,
-            'time': reminder_time.isoformat(),
-            'notified': False
-        })
-        self.reminder_input.clear()
-        self.update_reminders()
-        
-    def delete_reminder(self):
-        selected_text = self.reminders_list.textCursor().selectedText()
-        if not selected_text:
-            QMessageBox.warning(self, "No Selection", "Please select a reminder to delete.")
-            return
-            
-        reply = QMessageBox.question(
-            self, 'Delete Reminder',
-            'Are you sure you want to delete this reminder?',
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
-        )
-        
-        if reply == QMessageBox.Yes:
-            for i, reminder in enumerate(self.reminders):
-                if reminder['text'] in selected_text:
-                    del self.reminders[i]
-                    self.update_reminders()
-                    break
-                    
-    def update_reminders(self):
-        reminders_text = ""
-        for reminder in sorted(self.reminders, key=lambda x: x['time']):
-            time = datetime.fromisoformat(reminder['time']).strftime('%Y-%m-%d %H:%M')
-            status = "✓" if reminder['notified'] else "⏰"
-            reminders_text += f"[{time}] {status} {reminder['text']}\n"
-        self.reminders_list.setText(reminders_text)
-
-class SettingsDialog(QDialog):
-    def __init__(self, settings, parent=None):
-        super().__init__(parent)
-        self.settings = settings.copy()
-        self.setup_ui()
-        
-    def setup_ui(self):
-        self.setWindowTitle("Settings")
-        layout = QVBoxLayout(self)
-        
-        # Pet size
-        size_layout = QHBoxLayout()
-        size_layout.addWidget(QLabel("Pet Size:"))
-        self.size_input = QSpinBox()
-        self.size_input.setRange(50, 300)
-        self.size_input.setValue(self.settings['pet_size'])
-        size_layout.addWidget(self.size_input)
-        layout.addLayout(size_layout)
-        
-        # Animation speed
-        speed_layout = QHBoxLayout()
-        speed_layout.addWidget(QLabel("Animation Speed:"))
-        self.speed_input = QSpinBox()
-        self.speed_input.setRange(50, 200)
-        self.speed_input.setValue(self.settings['animation_speed'])
-        speed_layout.addWidget(self.speed_input)
-        layout.addLayout(speed_layout)
-        
-        # Stay on top
-        self.top_checkbox = QCheckBox("Stay on Top")
-        self.top_checkbox.setChecked(self.settings['stay_on_top'])
-        layout.addWidget(self.top_checkbox)
-        
-        # Show notifications
-        self.notify_checkbox = QCheckBox("Show Notifications")
-        self.notify_checkbox.setChecked(self.settings['show_notifications'])
-        layout.addWidget(self.notify_checkbox)
-        
-        # Buttons
-        button_layout = QHBoxLayout()
-        save_button = QPushButton("Save")
-        save_button.clicked.connect(self.save_settings)
-        button_layout.addWidget(save_button)
-        
-        cancel_button = QPushButton("Cancel")
-        cancel_button.clicked.connect(self.reject)
-        button_layout.addWidget(cancel_button)
-        
-        layout.addLayout(button_layout)
-        
-    def save_settings(self):
-        self.settings['pet_size'] = self.size_input.value()
-        self.settings['animation_speed'] = self.speed_input.value()
-        self.settings['stay_on_top'] = self.top_checkbox.isChecked()
-        self.settings['show_notifications'] = self.notify_checkbox.isChecked()
-        self.accept()
+def signal_handler(signum, frame):
+    """Handle interrupt signals"""
+    if 'pet' in globals():
+        pet.cleanup()
+    sys.exit(0)
 
 if __name__ == '__main__':
+    # Suppress Qt warnings
+    if not sys.warnoptions:
+        import warnings
+        warnings.filterwarnings('ignore', category=RuntimeWarning, module='PySide6.QtGui')
+    
+    # Set up signal handlers
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    
     app = QApplication(sys.argv)
     
-    # Apply the purple theme
-    apply_purple_theme(app)
+    # Apply the light purple theme
+    apply_light_purple_theme()
     
-    # Create and show the pet
+    # Suppress native menu bar on macOS
+    if sys.platform == 'darwin':
+        app.setAttribute(Qt.ApplicationAttribute.AA_DontUseNativeMenuBar)
+    
     pet = DesktopPet()
-    pet.show()
+    
+    # Allow clean shutdown on Ctrl+C
+    timer = QTimer()
+    timer.timeout.connect(lambda: None)  # Let Python process signals
+    timer.start(200)
     
     sys.exit(app.exec()) 
