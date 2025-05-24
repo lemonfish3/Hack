@@ -1,15 +1,30 @@
 import sys
 import signal
+import json
+import os
+import time
+import logging
+from datetime import datetime, timedelta
+from pathlib import Path
+
 from PySide6.QtWidgets import (QApplication, QLabel, QWidget, QMenu, QSystemTrayIcon,
                               QCalendarWidget, QInputDialog, QMessageBox, QDialog,
                               QVBoxLayout, QHBoxLayout, QPushButton, QSpinBox, QLineEdit,
                               QScrollArea, QFrame, QCheckBox, QTextEdit)
-from PySide6.QtCore import Qt, QPoint, QTimer, QDateTime, QTime
+from PySide6.QtCore import Qt, QPoint, QTimer, QDateTime, QTime, QSize
 from PySide6.QtGui import QMovie, QMouseEvent, QCursor, QAction, QFont, QPalette, QColor
-import json
-import os
-from datetime import datetime, timedelta
+
 from ui_style import apply_light_purple_theme  # Import the UI styling
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(os.path.join(os.path.expanduser('~'), '.desktop_pet', 'app.log')),
+        logging.StreamHandler()
+    ]
+)
 
 # 确保数据目录存在
 DATA_DIR = os.path.join(os.path.expanduser('~'), '.desktop_pet')
