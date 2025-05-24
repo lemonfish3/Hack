@@ -277,45 +277,93 @@ class PeriodDialog(QDialog):
         super().__init__(parent, Qt.WindowType.Window)
         self.parent_widget = parent
         self.setWindowTitle("Period Tracking")
-        self.setMinimumSize(400, 600)
+        self.setMinimumSize(500, 600)  # Adjusted size for single calendar
         
         layout = QVBoxLayout(self)
+        layout.setSpacing(20)
         
         # Date selection frame
         date_frame = QFrame()
         date_layout = QVBoxLayout(date_frame)
         
-        # Start date selection
-        start_date_label = QLabel("Start Date:")
-        date_layout.addWidget(start_date_label)
-        self.start_calendar = QCalendarWidget()
-        date_layout.addWidget(self.start_calendar)
+        # Calendar with styling
+        self.calendar = QCalendarWidget()
+        self.calendar.setMinimumSize(400, 400)
+        self.calendar.setStyleSheet("""
+            QCalendarWidget {
+                background-color: #E6E6FA;
+                border: 1px solid #C8C8E6;
+                border-radius: 5px;
+            }
+            QCalendarWidget QToolButton {
+                color: #6A5ACD;
+                background-color: transparent;
+                border: none;
+                font-size: 16px;
+                font-weight: bold;
+                padding: 5px;
+            }
+            QCalendarWidget QToolButton:hover {
+                background-color: #D8D8F0;
+                border-radius: 3px;
+            }
+            QCalendarWidget QMenu {
+                background-color: #E6E6FA;
+                border: 1px solid #C8C8E6;
+            }
+            QCalendarWidget QSpinBox {
+                background-color: #FFFFFF;
+                border: 1px solid #C8C8E6;
+                border-radius: 3px;
+                padding: 3px;
+            }
+        """)
+        date_layout.addWidget(self.calendar)
         
-        # End date selection
-        end_date_label = QLabel("End Date:")
-        date_layout.addWidget(end_date_label)
-        self.end_calendar = QCalendarWidget()
-        date_layout.addWidget(self.end_calendar)
-        
-        # Record button
+        # Record button with styling
         record_button = QPushButton("Record Period")
+        record_button.setStyleSheet("""
+            QPushButton {
+                background-color: #6A5ACD;
+                color: white;
+                font-size: 14px;
+                padding: 10px;
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #5A4ABD;
+            }
+        """)
         record_button.clicked.connect(self.record_period)
         date_layout.addWidget(record_button)
         
         layout.addWidget(date_frame)
         
-        # History label
+        # History section
+        history_frame = QFrame()
+        history_layout = QVBoxLayout(history_frame)
+        
         history_label = QLabel("History:")
-        layout.addWidget(history_label)
+        history_label.setStyleSheet("font-weight: bold; font-size: 14px;")
+        history_layout.addWidget(history_label)
         
         # Scrollable area for history
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        layout.addWidget(scroll)
+        scroll.setStyleSheet("""
+            QScrollArea {
+                border: 1px solid #C8C8E6;
+                border-radius: 5px;
+            }
+        """)
+        history_layout.addWidget(scroll)
         
         history_widget = QWidget()
         self.history_layout = QVBoxLayout(history_widget)
+        self.history_layout.setSpacing(10)
         scroll.setWidget(history_widget)
+        
+        layout.addWidget(history_frame)
         
         # Load history
         self.load_history()
@@ -360,18 +408,12 @@ class PeriodDialog(QDialog):
             QMessageBox.information(self, "Success", "Record deleted successfully!")
     
     def record_period(self):
-        start_date = self.start_calendar.selectedDate().toString("yyyy-MM-dd")
-        end_date = self.end_calendar.selectedDate().toString("yyyy-MM-dd")
-        
-        # Validate dates
-        if start_date > end_date:
-            QMessageBox.warning(self, "Invalid Dates", "Start date cannot be after end date!")
-            return
+        selected_date = self.calendar.selectedDate().toString("yyyy-MM-dd")
         
         # Create new record
         new_record = {
-            'start_date': start_date,
-            'end_date': end_date
+            'start_date': selected_date,
+            'end_date': selected_date
         }
         
         # Initialize period_records if it doesn't exist

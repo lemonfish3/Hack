@@ -91,26 +91,41 @@ def apply_light_purple_theme():
         }
         QCalendarWidget {
             background-color: #E6E6FA;
+            min-width: 400px;  /* Make calendar wider */
+            min-height: 350px; /* Make calendar taller */
         }
         QCalendarWidget QToolButton {
             color: #323250;
-            background-color: #D8D8F0;  /* Match button base color */
+            background-color: #D8D8F0;
             border: 1px solid #B4B4E6;
             border-radius: 4px;
+            min-width: 80px;  /* Make month/year button wider */
+            padding: 5px;
         }
-        QCalendarWidget QToolButton:hover {
-            background-color: #C8C8E6;  /* Match button hover color */
-            border: 1px solid #A4A4D6;
+        /* Style for navigation buttons */
+        QCalendarWidget QToolButton#qt_calendar_prevmonth,
+        QCalendarWidget QToolButton#qt_calendar_nextmonth {
+            color: #6A5ACD;  /* Slate blue color for arrows */
+            font-size: 16px;
+            font-weight: bold;
+            qproperty-text: "<";  /* Override default arrow with text */
         }
-        QCalendarWidget QToolButton:pressed {
-            background-color: #B4B4E6;  /* Match button pressed color */
-            border: 1px solid #9494C6;
+        QCalendarWidget QToolButton#qt_calendar_nextmonth {
+            qproperty-text: ">";
+        }
+        /* Hide the month selection arrows */
+        QCalendarWidget QToolButton::menu-indicator {
+            width: 0px;
+            height: 0px;
+            subcontrol-position: none;
         }
         QCalendarWidget QMenu {
             background-color: #E6E6FA;
+            min-width: 150px;  /* Make dropdown menu wider */
         }
         QCalendarWidget QSpinBox {
             background-color: #FFFFFF;
             border: 1px solid #C8C8E6;
+            min-width: 60px;  /* Make year spinbox wider */
         }
     """) 
