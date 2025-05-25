@@ -11,8 +11,9 @@ from PySide6.QtWidgets import (QApplication, QLabel, QWidget, QMenu, QSystemTray
                               QCalendarWidget, QInputDialog, QMessageBox, QDialog,
                               QVBoxLayout, QHBoxLayout, QPushButton, QSpinBox, QLineEdit,
                               QScrollArea, QFrame, QCheckBox, QTextEdit)
-from PySide6.QtCore import Qt, QPoint, QTimer, QDateTime, QTime, QSize
+from PySide6.QtCore import Qt, QPoint, QTimer, QDateTime, QTime, QSize, QUrl
 from PySide6.QtGui import QMovie, QMouseEvent, QCursor, QAction, QFont, QPalette, QColor
+from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 
 from ui_style import apply_light_purple_theme  # Import the UI styling
 
@@ -32,9 +33,14 @@ if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
 
 def resource_path(relative_path):
-    if hasattr(sys, '_MEIPASS'):
-        return os.path.join(sys._MEIPASS, relative_path)
-    return os.path.join(os.path.abspath("."), relative_path)
+    """Get absolute path to resource, works for dev and for PyInstaller"""
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    
+    return os.path.join(base_path, relative_path)
 
 class ScrollableDialog(QDialog):
     def __init__(self, title, parent=None):
@@ -610,6 +616,28 @@ class DesktopPet(QWidget):
         self.global_timer.timeout.connect(self.check_global_mouse)
         self.global_timer.start(100)  # Check every 100ms
         
+        # Initialize media player for sound effects
+        self.media_player = QMediaPlayer()
+        self.audio_output = QAudioOutput()
+        self.media_player.setAudioOutput(self.audio_output)
+        self.audio_output.setVolume(1.0)  # Set volume to 100%
+        
+        # Load the sound file with absolute path and error handling
+        sound_path = resource_path("oiia-oiia-sound.mp3")
+        logging.info(f"Loading sound file from: {sound_path}")
+        
+        if not os.path.exists(sound_path):
+            logging.error(f"Sound file not found at: {sound_path}")
+        else:
+            logging.info("Sound file exists, attempting to load...")
+            self.media_player.setSource(QUrl.fromLocalFile(sound_path))
+            # Stop any auto-play
+            self.media_player.stop()
+            
+        # Connect error handler and media status handler for looping
+        self.media_player.errorOccurred.connect(self.handle_media_error)
+        self.media_player.mediaStatusChanged.connect(self.handle_media_status)
+        
         # Apply additional styling specific to the pet window
         self.setStyleSheet("""
             QWidget#DesktopPet {
@@ -677,9 +705,14 @@ class DesktopPet(QWidget):
     def change_state(self, new_state):
         """Change the pet's state and animation"""
         if new_state != self.current_state and new_state in self.movies:
+            old_state = self.current_state
             self.current_state = new_state
             self.pet_label.setMovie(self.movies[new_state])
             self.movies[new_state].start()
+            
+            # Stop sound if we're changing from moving to any other state
+            if old_state == 'moving' and new_state != 'moving':
+                self.media_player.stop()
     
     def check_global_mouse(self):
         """Check global mouse position and handle following behavior"""
@@ -700,11 +733,21 @@ class DesktopPet(QWidget):
         
         if distance > 100:  # Only follow if cursor is more than 100 pixels away
             self.target_pos = QPoint(target_x, target_y)
+            # Only start playing sound if we're transitioning to moving state
             if self.current_state != 'moving':
                 self.change_state('moving')
+                # Start playing sound when movement begins
+                self.media_player.setPosition(0)  # Reset to start of sound
+                self.media_player.play()
             
             if not self.move_timer.isActive():
                 self.move_timer.start(50)
+        else:
+            # If we're not moving anymore, change state back to idle
+            if self.current_state == 'moving':
+                self.change_state('idle')
+                # Stop sound when movement stops
+                self.media_player.stop()
     
     def move_to_target(self):
         """Move pet towards target position"""
@@ -747,6 +790,10 @@ class DesktopPet(QWidget):
             self.notes_dialog.close()
         if self.period_dialog:
             self.period_dialog.close()
+        
+        # Stop and release media player
+        self.media_player.stop()
+        self.media_player.setSource(QUrl())
         self.global_timer.stop()
         self.move_timer.stop()
         self.reminder_timer.stop()
@@ -832,6 +879,17 @@ class DesktopPet(QWidget):
         
         if reminders_to_remove:
             self.save_data()
+
+    def handle_media_status(self, status):
+        """Handle media status changes for looping"""
+        # When the media reaches the end, if we're still in moving state, loop it
+        if status == QMediaPlayer.MediaStatus.EndOfMedia and self.current_state == 'moving':
+            self.media_player.setPosition(0)  # Reset to start
+            self.media_player.play()  # Play again
+
+    def handle_media_error(self, error, error_string):
+        """Handle media player errors"""
+        logging.error(f"Media player error {error}: {error_string}")
 
 def signal_handler(signum, frame):
     """Handle interrupt signals"""
