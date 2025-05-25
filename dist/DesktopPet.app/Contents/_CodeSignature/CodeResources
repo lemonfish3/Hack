@@ -16,6 +16,10 @@
 		<data>
 		Yv8n4ZT7dnlCWjy8B6WQyuWqxgk=
 		</data>
+		<key>Resources/Hackthon/oiia-oiia-sound.mp3</key>
+		<data>
+		PXN//Jl8tmkpdVbSkT+EoLL1/0g=
+		</data>
 		<key>Resources/Hackthon/ui_style.py</key>
 		<data>
 		QZDBprCLDDIjXGTvxs8M+VfCPls=
@@ -388,9 +392,117 @@
 		<data>
 		YveJ6PoME8X9T+JQV2v0WwfIV4E=
 		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_ar.qm</key>
+		<data>
+		RknN88U+YBKBD0TYqJA+52BvSzU=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_bg.qm</key>
+		<data>
+		T1QXNGkOEAdHqZ0lnS2rlIvg1oo=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_ca.qm</key>
+		<data>
+		T1EUx1F7j3nHxO1OAv7XRbFf1Lc=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_cs.qm</key>
+		<data>
+		JXzGwJXGcADU3o+DLzRH4PdVkF0=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_da.qm</key>
+		<data>
+		4jx3kMr7pCej5w9wW3tMvp8ijd8=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_de.qm</key>
+		<data>
+		B47WRLdYZbVheP3tlegPWXvBEBg=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_en.qm</key>
+		<data>
+		K/AFQALI99hd0IDfMyVTv5s6jiY=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_es.qm</key>
+		<data>
+		Hl1nKrg7+4St48gI+aeS90/ROUs=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_fa.qm</key>
+		<data>
+		GaqhAbxRDxqWtTe93s+OkNgiwr0=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_fi.qm</key>
+		<data>
+		yE1Yfaw4p+F0fkIIVJeNH8J6kl4=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_fr.qm</key>
+		<data>
+		Yda3mGF0PLlNHcKhU81UOABvXHU=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_hr.qm</key>
+		<data>
+		6KoB8q9lCh7M6VFtWPhpQjbVUdI=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_hu.qm</key>
+		<data>
+		Ne4/0CxONL4Pb5qA2q645jR4PAo=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_it.qm</key>
+		<data>
+		CFsQxkpM8iREF0gFvLa6CrXM/Fc=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_ja.qm</key>
+		<data>
+		7NJASjEhXi2BQSXT29Wtx8bUUIM=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_ka.qm</key>
+		<data>
+		WLAZg6Mxpj00Pek6GuL7OoLRLFc=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_ko.qm</key>
+		<data>
+		vEl/MPpCpfc9K0kX/CwSSW6v7ng=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_nl.qm</key>
+		<data>
+		yVMo2NhSSDKBi1SHAFN7b/mG+ao=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_nn.qm</key>
+		<data>
+		AbmG/KK/iici61hfL5mxXnD5bgw=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_pl.qm</key>
+		<data>
+		E9ONK5XMRzpcXNHWo72f9ptTUbM=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_pt_BR.qm</key>
+		<data>
+		B4uvtRrhKx3S1NQg4TkxxQczlno=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_ru.qm</key>
+		<data>
+		PJWUzx8+LmSnTDIJTzuaAyx+f7E=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_sk.qm</key>
+		<data>
+		b76KyvJnF5HJBDUI1PxtjluATHs=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_tr.qm</key>
+		<data>
+		ENFnVR7Urn0jhkeO312wBsBkvSE=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_uk.qm</key>
+		<data>
+		Bzll/d0gYBqDSLVI3bF0uDLXNbE=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_zh_CN.qm</key>
+		<data>
+		9VQV5/tzBNcWZ19fvajqdUNasvQ=
+		</data>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_zh_TW.qm</key>
+		<data>
+		XoMTEbKV2RXCdV3NE9fDsAAttiE=
+		</data>
 		<key>Resources/base_library.zip</key>
 		<data>
-		BBliFO4UR6lt0tfSy40rhcc4Cdo=
+		bMSQOdxn1buzlR8+mea7M0EvHVk=
 		</data>
 		<key>Resources/icon.icns</key>
 		<data>
@@ -430,6 +542,24 @@
 			</data>
 			<key>requirement</key>
 			<string>cdhash H"8c72b0cca3a367d85bc458e170f84ca6daea9e09"</string>
+		</dict>
+		<key>Frameworks/PySide6/Qt/lib/QtMultimedia.framework</key>
+		<dict>
+			<key>cdhash</key>
+			<data>
+			tKbrs+OQrKGv4wGGCo61N3B7fQc=
+			</data>
+			<key>requirement</key>
+			<string>cdhash H"b4a6ebb3e390aca1afe301860a8eb537707b7d07"</string>
+		</dict>
+		<key>Frameworks/PySide6/Qt/lib/QtMultimediaWidgets.framework</key>
+		<dict>
+			<key>cdhash</key>
+			<data>
+			9LGiRx7YOJcPl5oy4Qm8VXho5Ns=
+			</data>
+			<key>requirement</key>
+			<string>cdhash H"f4b1a2471ed838970f979a32e109bc557868e4db"</string>
 		</dict>
 		<key>Frameworks/PySide6/Qt/lib/QtNetwork.framework</key>
 		<dict>
@@ -529,6 +659,51 @@
 			</data>
 			<key>requirement</key>
 			<string>cdhash H"2579fe4e675c512e0b12cf754b1d09d506215e25"</string>
+		</dict>
+		<key>Frameworks/PySide6/Qt/lib/libavcodec.61.dylib</key>
+		<dict>
+			<key>cdhash</key>
+			<data>
+			qvEkAJqtx3unjzz5i+SNbrzG9d0=
+			</data>
+			<key>requirement</key>
+			<string>cdhash H"aaf124009aadc77ba78f3cf98be48d6ebcc6f5dd"</string>
+		</dict>
+		<key>Frameworks/PySide6/Qt/lib/libavformat.61.dylib</key>
+		<dict>
+			<key>cdhash</key>
+			<data>
+			A8og33lqvKUoBu70k9xqL9i/1/E=
+			</data>
+			<key>requirement</key>
+			<string>cdhash H"03ca20df796abca52806eef493dc6a2fd8bfd7f1"</string>
+		</dict>
+		<key>Frameworks/PySide6/Qt/lib/libavutil.59.dylib</key>
+		<dict>
+			<key>cdhash</key>
+			<data>
+			qjpK4iDoVCaljKXKHH2EPpnaklg=
+			</data>
+			<key>requirement</key>
+			<string>cdhash H"aa3a4ae220e85426a58ca5ca1c7d843e99da9258"</string>
+		</dict>
+		<key>Frameworks/PySide6/Qt/lib/libswresample.5.dylib</key>
+		<dict>
+			<key>cdhash</key>
+			<data>
+			W9QzLdAJ/Bs1Bzm1ULBw0ZUKSmY=
+			</data>
+			<key>requirement</key>
+			<string>cdhash H"5bd4332dd009fc1b350739b550b070d1950a4a66"</string>
+		</dict>
+		<key>Frameworks/PySide6/Qt/lib/libswscale.8.dylib</key>
+		<dict>
+			<key>cdhash</key>
+			<data>
+			H2sVN2UQQRrICESNF9gAKz4/Wlg=
+			</data>
+			<key>requirement</key>
+			<string>cdhash H"1f6b15376510411ac808448d17d8002b3e3f5a58"</string>
 		</dict>
 		<key>Frameworks/PySide6/Qt/plugins/generic/libqtuiotouchplugin.dylib</key>
 		<dict>
@@ -656,6 +831,24 @@
 			<key>requirement</key>
 			<string>cdhash H"f655b6a3658587c5f67c9630f07f0ac74fbc0900"</string>
 		</dict>
+		<key>Frameworks/PySide6/Qt/plugins/multimedia/libdarwinmediaplugin.dylib</key>
+		<dict>
+			<key>cdhash</key>
+			<data>
+			oqw2pwoCALMKP/tti8ij1DF8OQk=
+			</data>
+			<key>requirement</key>
+			<string>cdhash H"a2ac36a70a0200b30a3ffb6d8bc8a3d4317c3909"</string>
+		</dict>
+		<key>Frameworks/PySide6/Qt/plugins/multimedia/libffmpegmediaplugin.dylib</key>
+		<dict>
+			<key>cdhash</key>
+			<data>
+			vxWCR8tn7VWlcdHPTHq6gSlWS/M=
+			</data>
+			<key>requirement</key>
+			<string>cdhash H"bf158247cb67ed55a571d1cf4c7aba8129564bf3"</string>
+		</dict>
 		<key>Frameworks/PySide6/Qt/plugins/networkinformation/libqscnetworkreachability.dylib</key>
 		<dict>
 			<key>cdhash</key>
@@ -769,6 +962,24 @@
 			<key>requirement</key>
 			<string>cdhash H"d509ab7dced044f1ef55edb74497fb117c3e03c3"</string>
 		</dict>
+		<key>Frameworks/PySide6/QtMultimedia.abi3.so</key>
+		<dict>
+			<key>cdhash</key>
+			<data>
+			M8+gI/XDGh4yf257+vJsduC5tAM=
+			</data>
+			<key>requirement</key>
+			<string>cdhash H"33cfa023f5c31a1e327f6e7bfaf26c76e0b9b403"</string>
+		</dict>
+		<key>Frameworks/PySide6/QtMultimediaWidgets.abi3.so</key>
+		<dict>
+			<key>cdhash</key>
+			<data>
+			n8hOURMzCWVc+f/Bw5puwbfFWk8=
+			</data>
+			<key>requirement</key>
+			<string>cdhash H"9fc84e51133309655cf9ffc1c39a6ec1b7c55a4f"</string>
+		</dict>
 		<key>Frameworks/PySide6/QtNetwork.abi3.so</key>
 		<dict>
 			<key>cdhash</key>
@@ -824,6 +1035,16 @@
 		<dict>
 			<key>symlink</key>
 			<string>PySide6/Qt/lib/QtGui.framework/Versions/A/QtGui</string>
+		</dict>
+		<key>Frameworks/QtMultimedia</key>
+		<dict>
+			<key>symlink</key>
+			<string>PySide6/Qt/lib/QtMultimedia.framework/Versions/A/QtMultimedia</string>
+		</dict>
+		<key>Frameworks/QtMultimediaWidgets</key>
+		<dict>
+			<key>symlink</key>
+			<string>PySide6/Qt/lib/QtMultimediaWidgets.framework/Versions/A/QtMultimediaWidgets</string>
 		</dict>
 		<key>Frameworks/QtNetwork</key>
 		<dict>
@@ -1236,6 +1457,21 @@
 			<key>requirement</key>
 			<string>cdhash H"288c3dafea9bd4661bc03f67353afb457e5d7380"</string>
 		</dict>
+		<key>Frameworks/libavcodec.61.dylib</key>
+		<dict>
+			<key>symlink</key>
+			<string>PySide6/Qt/lib/libavcodec.61.dylib</string>
+		</dict>
+		<key>Frameworks/libavformat.61.dylib</key>
+		<dict>
+			<key>symlink</key>
+			<string>PySide6/Qt/lib/libavformat.61.dylib</string>
+		</dict>
+		<key>Frameworks/libavutil.59.dylib</key>
+		<dict>
+			<key>symlink</key>
+			<string>PySide6/Qt/lib/libavutil.59.dylib</string>
+		</dict>
 		<key>Frameworks/libcrypto.3.dylib</key>
 		<dict>
 			<key>cdhash</key>
@@ -1254,6 +1490,16 @@
 		<dict>
 			<key>symlink</key>
 			<string>shiboken6/libshiboken6.abi3.6.9.dylib</string>
+		</dict>
+		<key>Frameworks/libswresample.5.dylib</key>
+		<dict>
+			<key>symlink</key>
+			<string>PySide6/Qt/lib/libswresample.5.dylib</string>
+		</dict>
+		<key>Frameworks/libswscale.8.dylib</key>
+		<dict>
+			<key>symlink</key>
+			<string>PySide6/Qt/lib/libswscale.8.dylib</string>
 		</dict>
 		<key>Frameworks/shiboken6/Shiboken.abi3.so</key>
 		<dict>
@@ -1292,6 +1538,13 @@
 			<key>hash2</key>
 			<data>
 			MAKm5OkHkuxNc2FEtbFBTnit6Io5GpYOsSsqnHbxLFU=
+			</data>
+		</dict>
+		<key>Resources/Hackthon/oiia-oiia-sound.mp3</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			Dxad/9h3HqF7OyOUWwnGR6n6NE3Uhk0McdPSRbw7Bz8=
 			</data>
 		</dict>
 		<key>Resources/Hackthon/ui_style.py</key>
@@ -1955,6 +2208,195 @@
 			IQErK0J/jQnTHOnK5YLKJ5VbR4yj3C7BijBo2AhjjGo=
 			</data>
 		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_ar.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			X8EEFOFowRYbhZClwXPRQNMbF89FDwrJPmZuv3ov+Qg=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_bg.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			rdhnX7wjUftsg5ftNpMvmFU3gt1M4EmO/FuJsFCshiY=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_ca.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			kYm2w+VGlmvlY9XAOMOUAF739ik+DBgVYBSPHGFf1zM=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_cs.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			bxFuei/e/oSokN8XGNI15h1XMb98Lj5XqDj27J7t4Po=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_da.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			OdkCQRBkzFxf1FdC8XaAIqGueVNwB0Gy9gjjgH4ZEQo=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_de.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			Et+2N0SPH5hpBMlEwRj3hydvzt8cbhHMviVAJPTyShI=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_en.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			SUrJorLLL97O01P0qfiY7Y3PYW6bxmdDjGJoHj9/ec8=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_es.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			CGaRG/1MbnjTUX6imN5lPK7wtySK76zbpSNudWWpsqU=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_fa.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			WqV9a/r18kOMOx2PhSlMF8hSvMB9WRbKfftD0ghwyDo=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_fi.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			YovnLB3HBlKrMC4vjMufPDKOf93ffY0cXOIQVqm6hPI=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_fr.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			nNLyZjl46THEqPVK8mxa7h3bI68vGClugqt2O75rreo=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_hr.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			E0Kpbh8HFDQ8+4v58OzJ83NjhaI8/53I542213YtQbQ=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_hu.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			RJQAzOqyHHKDwWE2JMbat1lT1xmQTEYcKy2Y7KGUZrI=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_it.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			rKjU3RReZx2CflgklvICgdxVmskefhP4jPUIvC1jAe0=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_ja.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			+aiIWGxCwiiUzLQYAlfC3nApn/XVQAh7wzTadKjdWWk=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_ka.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			ze3U109ObNr36OxM59ogPno+H79KzM8Zj9IWm9bdm40=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_ko.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			9RKl6YVTXQMJ9zfmFW9ZWa6bZAXmX/dquuWhOTMvLHo=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_nl.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			mCZSCT+T3tjKDAbi5wzgEtG1YpgqwY9xD7OU4M3yG6c=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_nn.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			AgqThr/BjCMEgJjtwUOfW8Xp+KGIrppJx1zIykYKgmg=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_pl.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			PEy3EfalnlsZ5K3A0Ka+Y8C7VfFWJq1kDbG/0dE2NmQ=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_pt_BR.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			YCaTmNPfNcM4s6FPOVRDGin0T8FzJa0AGZrpo5VB1Cw=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_ru.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			MsERhBXyWjeNNWzwFlI5PI+QYxRbyPipPE+ZIWb6nU0=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_sk.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			gvVE8x/7DOgDQPRFrSyOK6V5aUE++bXRD+QyK7lqaFE=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_tr.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			GOsclSb3eKJPsNd9AAhXHZcnFnCN67hfXmxe6EBLtkA=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_uk.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			6/ZzGEkPcMdltQtsxOs81MDquf8QoZvESgSJskzs2DQ=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_zh_CN.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			cL4iJyi4heDDfDIcxxaBPv+KuZYyh6boDdvIPmtt7GQ=
+			</data>
+		</dict>
+		<key>Resources/PySide6/Qt/translations/qtmultimedia_zh_TW.qm</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			gBaaWdD3mB9dvafKnE5s6zqe4XtCpXV0zH4hfU81R78=
+			</data>
+		</dict>
 		<key>Resources/PySide6/QtCore.abi3.so</key>
 		<dict>
 			<key>symlink</key>
@@ -1969,6 +2411,16 @@
 		<dict>
 			<key>symlink</key>
 			<string>../../Frameworks/PySide6/QtGui.abi3.so</string>
+		</dict>
+		<key>Resources/PySide6/QtMultimedia.abi3.so</key>
+		<dict>
+			<key>symlink</key>
+			<string>../../Frameworks/PySide6/QtMultimedia.abi3.so</string>
+		</dict>
+		<key>Resources/PySide6/QtMultimediaWidgets.abi3.so</key>
+		<dict>
+			<key>symlink</key>
+			<string>../../Frameworks/PySide6/QtMultimediaWidgets.abi3.so</string>
 		</dict>
 		<key>Resources/PySide6/QtNetwork.abi3.so</key>
 		<dict>
@@ -2009,6 +2461,16 @@
 		<dict>
 			<key>symlink</key>
 			<string>PySide6/Qt/lib/QtGui.framework/Versions/A/QtGui</string>
+		</dict>
+		<key>Resources/QtMultimedia</key>
+		<dict>
+			<key>symlink</key>
+			<string>PySide6/Qt/lib/QtMultimedia.framework/Versions/A/QtMultimedia</string>
+		</dict>
+		<key>Resources/QtMultimediaWidgets</key>
+		<dict>
+			<key>symlink</key>
+			<string>PySide6/Qt/lib/QtMultimediaWidgets.framework/Versions/A/QtMultimediaWidgets</string>
 		</dict>
 		<key>Resources/QtNetwork</key>
 		<dict>
@@ -2069,7 +2531,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			BOei6YvNtOoZ0f5+jK6kNnGU9yqP+1laaonnrznUAx4=
+			6O8XrczU7dRTYDnIE0NyLfhFwxyY4IFS/sH00irtaNg=
 			</data>
 		</dict>
 		<key>Resources/icon.icns</key>
@@ -2083,6 +2545,21 @@
 		<dict>
 			<key>symlink</key>
 			<string>../Frameworks/lib-dynload</string>
+		</dict>
+		<key>Resources/libavcodec.61.dylib</key>
+		<dict>
+			<key>symlink</key>
+			<string>PySide6/Qt/lib/libavcodec.61.dylib</string>
+		</dict>
+		<key>Resources/libavformat.61.dylib</key>
+		<dict>
+			<key>symlink</key>
+			<string>PySide6/Qt/lib/libavformat.61.dylib</string>
+		</dict>
+		<key>Resources/libavutil.59.dylib</key>
+		<dict>
+			<key>symlink</key>
+			<string>PySide6/Qt/lib/libavutil.59.dylib</string>
 		</dict>
 		<key>Resources/libcrypto.3.dylib</key>
 		<dict>
@@ -2098,6 +2575,16 @@
 		<dict>
 			<key>symlink</key>
 			<string>shiboken6/libshiboken6.abi3.6.9.dylib</string>
+		</dict>
+		<key>Resources/libswresample.5.dylib</key>
+		<dict>
+			<key>symlink</key>
+			<string>PySide6/Qt/lib/libswresample.5.dylib</string>
+		</dict>
+		<key>Resources/libswscale.8.dylib</key>
+		<dict>
+			<key>symlink</key>
+			<string>PySide6/Qt/lib/libswscale.8.dylib</string>
 		</dict>
 		<key>Resources/shiboken6</key>
 		<dict>

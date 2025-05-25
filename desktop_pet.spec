@@ -13,6 +13,7 @@ a = Analysis(
         ('Hackthon/happy.gif', 'Hackthon'),
         ('Hackthon/moving.gif', 'Hackthon'),
         ('Hackthon/ui_style.py', 'Hackthon'),
+        ('Hackthon/oiia-oiia-sound.mp3', 'Hackthon'),
     ],
     hiddenimports=[],
     hookspath=[],

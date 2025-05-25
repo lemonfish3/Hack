@@ -300,6 +300,16 @@ class SettingsDialog(QDialog):
         speed_layout.addWidget(self.speed_input)
         layout.addLayout(speed_layout)
         
+        # Size setting
+        size_layout = QHBoxLayout()
+        self.size_slider = QSpinBox()
+        self.size_slider.setRange(50, 200)  # Size range from 50% to 200%
+        self.size_slider.setValue(parent.pet_size if parent else 100)
+        self.size_slider.setSuffix("%")
+        size_layout.addWidget(QLabel("Pet Size:"))
+        size_layout.addWidget(self.size_slider)
+        layout.addLayout(size_layout)
+        
         # OK button
         ok_button = QPushButton('Apply')
         ok_button.clicked.connect(self.accept)
@@ -331,6 +341,7 @@ class PeriodDialog(QDialog):
         # Calendar with styling
         self.calendar = QCalendarWidget()
         self.calendar.setMinimumSize(300, 300)  # Reduced calendar size
+        self.calendar.setVerticalHeaderFormat(QCalendarWidget.VerticalHeaderFormat.NoVerticalHeader)  # Hide week numbers
         self.calendar.setStyleSheet("""
             QCalendarWidget {
                 background-color: #E6E6FA;
@@ -368,6 +379,12 @@ class PeriodDialog(QDialog):
             }
             QCalendarWidget QAbstractItemView:disabled {
                 color: #A0A0A0;
+            }
+            /* Highlight weekends */
+            QCalendarWidget QAbstractItemView:enabled[dayOfWeek="6"],
+            QCalendarWidget QAbstractItemView:enabled[dayOfWeek="7"] {
+                color: #6A5ACD;
+                font-weight: bold;
             }
         """)
         self.calendar.clicked.connect(self.handle_date_selection)
@@ -595,6 +612,7 @@ class DesktopPet(QWidget):
         self.move_timer.timeout.connect(self.move_to_target)
         self.move_speed = 5
         self.follow_mouse = True  # Add mouse following state
+        self.pet_size = 100  # Default size is 100%
         
         # Initialize data storage
         self.data_file = os.path.join(DATA_DIR, 'pet_data.json')
@@ -623,7 +641,7 @@ class DesktopPet(QWidget):
         self.audio_output.setVolume(1.0)  # Set volume to 100%
         
         # Load the sound file with absolute path and error handling
-        sound_path = resource_path("oiia-oiia-sound.mp3")
+        sound_path = resource_path("Hackthon/oiia-oiia-sound.mp3")
         logging.info(f"Loading sound file from: {sound_path}")
         
         if not os.path.exists(sound_path):
@@ -653,7 +671,30 @@ class DesktopPet(QWidget):
         self.adjustSize()
         self.raise_()
         self.activateWindow()
+        
+        # Apply initial size
+        self.update_pet_size()
     
+    def update_pet_size(self):
+        """Update the pet's size based on the size setting"""
+        if not self.current_movie:
+            return
+            
+        # Get the original size of the current frame
+        original_size = self.current_movie.currentPixmap().size()
+        
+        # Calculate new size based on percentage
+        new_width = int(original_size.width() * self.pet_size / 100)
+        new_height = int(original_size.height() * self.pet_size / 100)
+        
+        # Set the new size for all movies
+        for movie in self.movies.values():
+            movie.setScaledSize(QSize(new_width, new_height))
+        
+        # Set the new size for the label
+        self.pet_label.setFixedSize(new_width, new_height)
+        self.adjustSize()
+
     def load_animations(self):
         """Load all animation states"""
         movies = {}
@@ -671,11 +712,14 @@ class DesktopPet(QWidget):
         if os.path.exists(self.data_file):
             with open(self.data_file, 'r') as f:
                 self.data = json.load(f)
+                # Load saved size
+                self.pet_size = self.data.get('pet_size', 100)
         else:
             self.data = {
                 'notes': [],
                 'period_records': [],
-                'reminders': []
+                'reminders': [],
+                'pet_size': 100
             }
     
     def save_data(self):
@@ -855,6 +899,13 @@ class DesktopPet(QWidget):
         if self.settings_dialog.exec() == QDialog.DialogCode.Accepted:
             self.move_speed = self.settings_dialog.speed_input.value()
             self.follow_mouse = self.settings_dialog.follow_checkbox.isChecked()
+            new_size = self.settings_dialog.size_slider.value()
+            if new_size != self.pet_size:
+                self.pet_size = new_size
+                self.update_pet_size()
+                # Save size to data
+                self.data['pet_size'] = self.pet_size
+                self.save_data()
 
     def check_reminders(self):
         """Check for due reminders"""
