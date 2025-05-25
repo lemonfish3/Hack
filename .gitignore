@@ -6,6 +6,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
+dist/
 downloads/
 eggs/
 .eggs/
@@ -48,4 +49,13 @@ shiboken6/
 .Spotlight-V100
 .Trashes
 ehthumbs.db
-Thumbs.db 
+Thumbs.db
+
+# macOS
+.AppleDouble
+.LSOverride
+
+# Project specific
+dist/
+build/
+*.spec 
