@@ -1,4 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
+import sys
+import os
 
 block_cipher = None
 
@@ -12,12 +14,7 @@ a = Analysis(
         ('Hackthon/moving.gif', 'Hackthon'),
         ('Hackthon/ui_style.py', 'Hackthon'),
     ],
-    hiddenimports=[
-        'PySide6.QtCore',
-        'PySide6.QtGui',
-        'PySide6.QtWidgets',
-        'PySide6.QtNetwork',
-    ],
+    hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -40,7 +37,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,  # Changed to True for debugging
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=True,
     target_arch=None,
@@ -59,16 +56,21 @@ coll = COLLECT(
     name='DesktopPet',
 )
 
-app = BUNDLE(
-    coll,
-    name='DesktopPet.app',
-    icon='icon.icns',
-    bundle_identifier='com.desktoppet.app',
-    info_plist={
-        'CFBundleShortVersionString': '1.0.0',
-        'CFBundleVersion': '1.0.0',
-        'NSHighResolutionCapable': 'True',
-        'LSBackgroundOnly': 'False',  # Changed to False to ensure window appears
-        'LSUIElement': 'False',  # Changed to False to ensure window appears
-    },
-) 
+if sys.platform == 'darwin':
+    icon_path = 'Hackthon/icon.icns'
+    if not os.path.exists(icon_path):
+        icon_path = None
+        
+    app = BUNDLE(
+        coll,
+        name='DesktopPet.app',
+        icon=icon_path,
+        bundle_identifier='com.desktoppet.app',
+        info_plist={
+            'CFBundleShortVersionString': '1.0.0',
+            'CFBundleVersion': '1.0.0',
+            'NSHighResolutionCapable': 'True',
+            'LSBackgroundOnly': 'False',
+            'LSUIElement': 'False',
+        },
+    ) 
