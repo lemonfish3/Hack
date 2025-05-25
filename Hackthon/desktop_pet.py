@@ -31,6 +31,11 @@ DATA_DIR = os.path.join(os.path.expanduser('~'), '.desktop_pet')
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
 
+def resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+
 class ScrollableDialog(QDialog):
     def __init__(self, title, parent=None):
         super().__init__(parent, Qt.WindowType.Window)
@@ -516,12 +521,14 @@ class DesktopPet(QWidget):
         # Show the widget
         self.show()
         self.adjustSize()
+        self.raise_()
+        self.activateWindow()
     
     def load_animations(self):
         """Load all animation states"""
         movies = {}
         for state in ['idle', 'happy', 'moving']:
-            movie = QMovie(f"{state}.gif")
+            movie = QMovie(resource_path(f"Hackthon/{state}.gif"))
             if movie.isValid():
                 movies[state] = movie
             else:
@@ -734,6 +741,7 @@ def signal_handler(signum, frame):
     sys.exit(0)
 
 if __name__ == '__main__':
+    print("DesktopPet is starting...")
     # Suppress Qt warnings
     if not sys.warnoptions:
         import warnings
