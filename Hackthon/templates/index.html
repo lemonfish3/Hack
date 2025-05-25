@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oiia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .tab-button.active {
+            background-color: #6A5ACD;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex justify-center items-center mb-8 gap-4 flex-wrap">
+            <h1 class="text-4xl font-bold text-purple-600">Oiia</h1>
+            <img src="https://media.tenor.com/sbfBfp3FeY8AAAAj/oia-uia.gif" alt="Webcat" class="w-16 h-16 object-contain">
+
+        </div>
+        
+
+        <!-- Tab Navigation -->
+        <div class="flex justify-center space-x-4 mb-8">
+            <button class="tab-button px-6 py-2 rounded-lg bg-white shadow hover:bg-purple-100" data-tab="notes">Notes</button>
+            <button class="tab-button px-6 py-2 rounded-lg bg-white shadow hover:bg-purple-100" data-tab="todos">Todo List</button>
+            <button class="tab-button px-6 py-2 rounded-lg bg-white shadow hover:bg-purple-100" data-tab="period">Period Tracking</button>
+        </div>
+
+        <!-- Notes Tab -->
+        <div id="notes" class="tab-content bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-semibold mb-4">Notes</h2>
+            <form action="{{ url_for('add_note') }}" method="post" class="mb-6">
+                <textarea name="text" placeholder="Add new note..." required 
+                    class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
+                <button type="submit" 
+                    class="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Add Note</button>
+            </form>
+            <div class="space-y-4">
+                {% for note in notes %}
+                <div class="bg-gray-50 p-4 rounded-lg flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-800">{{ note.text }}</p>
+                        <p class="text-sm text-gray-500">{{ note.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                    </div>
+                    <a href="{{ url_for('delete_note', note_id=note.id) }}" 
+                        class="text-red-500 hover:text-red-700">Delete</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Todo List Tab -->
+        <div id="todos" class="tab-content bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-semibold mb-4">Todo List</h2>
+            <form action="{{ url_for('add_todo') }}" method="post" class="mb-6">
+                <div class="flex gap-2">
+                    <input type="text" name="text" placeholder="Add new todo..." required 
+                        class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <button type="submit" 
+                        class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Add</button>
+                </div>
+            </form>
+            <div class="space-y-2">
+                {% for todo in todos %}
+                <div class="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+                    <div class="flex items-center gap-3">
+                        <form action="{{ url_for('toggle_todo', todo_id=todo.id) }}" method="post" class="m-0">
+                            <button type="submit" 
+                                class="w-5 h-5 border-2 border-purple-600 rounded-full {% if todo.completed %}bg-purple-600{% endif %} focus:outline-none"></button>
+                        </form>
+                        <span class="{% if todo.completed %}line-through text-gray-500{% endif %}">{{ todo.text }}</span>
+                    </div>
+                    <form action="{{ url_for('delete_todo', todo_id=todo.id) }}" method="post" class="m-0">
+                        <button type="submit" class="text-red-500 hover:text-red-700 focus:outline-none">Delete</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Period Tracking Tab -->
+        <div id="period" class="tab-content bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-semibold mb-4">Period Tracking</h2>
+            <form action="{{ url_for('add_period') }}" method="post" class="mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                        <input type="date" name="start_date" required 
+                            class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                        <input type="date" name="end_date" required 
+                            class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                </div>
+                <button type="submit" 
+                    class="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Add Period</button>
+            </form>
+            <div class="space-y-4">
+                {% for record in period_records %}
+                <div class="bg-gray-50 p-4 rounded-lg flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-800">From {{ record.start_date.strftime('%Y-%m-%d') }} to {{ record.end_date.strftime('%Y-%m-%d') }}</p>
+                    </div>
+                    <a href="{{ url_for('delete_period', record_id=record.id) }}" 
+                        class="text-red-500 hover:text-red-700">Delete</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            // Show first tab by default
+            tabButtons[0].classList.add('active');
+            tabContents[0].classList.add('active');
+
+            // Function to switch tabs
+            function switchTab(tabId) {
+                // Remove active class from all buttons and contents
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+
+                // Add active class to clicked button and corresponding content
+                const activeButton = document.querySelector(`[data-tab="${tabId}"]`);
+                const activeContent = document.getElementById(tabId);
+                if (activeButton && activeContent) {
+                    activeButton.classList.add('active');
+                    activeContent.classList.add('active');
+                }
+            }
+
+            // Handle tab button clicks
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = button.getAttribute('data-tab');
+                    switchTab(tabId);
+                    // Store the active tab
+                    localStorage.setItem('activeTab', tabId);
+                });
+            });
+
+            // Handle form submissions
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    // Store the current active tab before form submission
+                    const activeTab = document.querySelector('.tab-content.active').id;
+                    localStorage.setItem('activeTab', activeTab);
+                });
+            });
+
+            // Restore the active tab on page load
+            const savedTab = localStorage.getItem('activeTab');
+            if (savedTab) {
+                switchTab(savedTab);
+            }
+        });
+    </script>
+</body>
+</html> 

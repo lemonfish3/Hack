@@ -6,6 +6,7 @@ import time
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
+import traceback
 
 from PySide6.QtWidgets import (QApplication, QLabel, QWidget, QMenu, QSystemTrayIcon,
                               QCalendarWidget, QInputDialog, QMessageBox, QDialog,
@@ -61,135 +62,122 @@ class ScrollableDialog(QDialog):
         self.content_layout = QVBoxLayout(self.content_widget)
         scroll.setWidget(self.content_widget)
 
-class ReminderDialog(ScrollableDialog):
+class TodoListDialog(ScrollableDialog):
     def __init__(self, parent=None):
-        super().__init__("Reminders", parent)
-        self.parent_widget = parent
-        
-        # List frame for reminders
-        self.list_frame = QFrame()
-        self.list_layout = QVBoxLayout(self.list_frame)
-        self.content_layout.addWidget(self.list_frame)
-        
-        # Input frame for new reminder
-        input_frame = QFrame()
-        input_layout = QVBoxLayout(input_frame)
-        
-        # Text input
-        self.text_input = QLineEdit()
-        self.text_input.setPlaceholderText("Enter reminder text...")
-        input_layout.addWidget(self.text_input)
-        
-        # Date and time inputs
-        datetime_frame = QFrame()
-        datetime_layout = QHBoxLayout(datetime_frame)
-        
-        self.date_edit = QCalendarWidget()
-        datetime_layout.addWidget(self.date_edit)
-        
-        time_frame = QFrame()
-        time_layout = QVBoxLayout(time_frame)
-        
-        self.hour_spin = QSpinBox()
-        self.hour_spin.setRange(0, 23)
-        self.hour_spin.setPrefix("Hour: ")
-        time_layout.addWidget(self.hour_spin)
-        
-        self.minute_spin = QSpinBox()
-        self.minute_spin.setRange(0, 59)
-        self.minute_spin.setPrefix("Minute: ")
-        time_layout.addWidget(self.minute_spin)
-        
-        datetime_layout.addWidget(time_frame)
-        input_layout.addWidget(datetime_frame)
-        
-        # Add button
-        add_button = QPushButton("Add Reminder")
-        add_button.clicked.connect(self.add_reminder)
-        input_layout.addWidget(add_button)
-        
-        self.content_layout.addWidget(input_frame)
-        
-        # Load existing reminders
-        self.load_reminders()
-    
-    def load_reminders(self):
-        reminders = self.parent_widget.data['reminders'] if hasattr(self.parent_widget, 'data') else []
-        if not reminders:
-            label = QLabel("No reminders")
+        logging.info("TodoListDialog: __init__ called")
+        try:
+            super().__init__("Todo List", parent)
+            self.parent_widget = parent
+            # List frame for todos
+            self.list_frame = QFrame()
+            self.list_layout = QVBoxLayout(self.list_frame)
+            self.content_layout.addWidget(self.list_frame)
+            # Input frame for new todo
+            input_frame = QFrame()
+            input_layout = QHBoxLayout(input_frame)
+            # Text input
+            self.text_input = QLineEdit()
+            self.text_input.setPlaceholderText("Add new todo...")
+            self.text_input.returnPressed.connect(self.add_todo)  # Add todo when Enter is pressed
+            input_layout.addWidget(self.text_input)
+            # Add button
+            add_button = QPushButton("Add")
+            add_button.clicked.connect(self.add_todo)
+            input_layout.addWidget(add_button)
+            self.content_layout.addWidget(input_frame)
+            # Load existing todos
+            self.load_todos()
+        except Exception as e:
+            logging.error(f"Exception in TodoListDialog.__init__: {e}\n{traceback.format_exc()}")
+            raise
+        logging.info("TodoListDialog: __init__ finished")
+
+    def load_todos(self):
+        todos = self.parent_widget.data.get('todos', []) if hasattr(self.parent_widget, 'data') else []
+        if not todos:
+            label = QLabel("No todos yet")
             label.setStyleSheet("color: gray;")
             self.list_layout.addWidget(label)
         else:
-            # Sort reminders by datetime
-            reminders.sort(key=lambda x: x.get('datetime', ''))
-            for reminder in reminders:
-                self.add_reminder_widget(reminder)
-    
-    def add_reminder(self):
+            for todo in todos:
+                self.add_todo_widget(todo)
+
+    def add_todo_widget(self, todo):
+        frame = QFrame()
+        layout = QHBoxLayout(frame)
+        # Checkbox
+        checkbox = QCheckBox()
+        checkbox.setChecked(todo.get('completed', False))
+        checkbox.stateChanged.connect(lambda state, t=todo: self.toggle_todo(t, state))
+        layout.addWidget(checkbox)
+        # Todo text
+        label = QLabel(todo['text'])
+        label.setWordWrap(True)
+        if todo.get('completed', False):
+            label.setStyleSheet("text-decoration: line-through; color: gray;")
+        layout.addWidget(label)
+        # Delete button
+        delete_btn = QPushButton("×")
+        delete_btn.setFixedSize(30, 30)  # Set fixed size for delete button
+        delete_btn.setStyleSheet("""
+            QPushButton {
+                color: #FF4444;
+                border: none;
+                font-size: 16px;
+                padding: 2px 8px;
+            }
+            QPushButton:hover {
+                background-color: #FFE0E0;
+                border-radius: 3px;
+            }
+        """)
+        delete_btn.clicked.connect(lambda: self.delete_todo(todo, frame))
+        layout.addWidget(delete_btn)
+        self.list_layout.addWidget(frame)
+
+    def add_todo(self):
         text = self.text_input.text().strip()
         if text:
-            # Get selected date and time
-            selected_date = self.date_edit.selectedDate()
-            hour = self.hour_spin.value()
-            minute = self.minute_spin.value()
-            
-            # Create datetime string
-            reminder_datetime = datetime.combine(
-                selected_date.toPython(),
-                datetime.min.time().replace(hour=hour, minute=minute)
-            ).strftime("%Y-%m-%d %H:%M:%S")
-            
-            reminder = {
+            todo = {
                 'text': text,
-                'datetime': reminder_datetime,
                 'completed': False
             }
-            
-            self.parent_widget.data['reminders'].append(reminder)
+            # Initialize todos list if it doesn't exist
+            if not hasattr(self.parent_widget, 'data'):
+                self.parent_widget.data = {}
+            if 'todos' not in self.parent_widget.data:
+                self.parent_widget.data['todos'] = []
+            self.parent_widget.data['todos'].append(todo)
             self.parent_widget.save_data()
-            
-            # Clear inputs
+            # Clear input
             self.text_input.clear()
-            self.hour_spin.setValue(0)
-            self.minute_spin.setValue(0)
-            
-            # Clear existing reminders and reload
+            # Clear existing todos and reload
             while self.list_layout.count():
                 item = self.list_layout.takeAt(0)
                 if item.widget():
                     item.widget().deleteLater()
-            
-            self.load_reminders()
-            
-            QMessageBox.information(self, "Success", "Reminder added successfully!")
-    
-    def add_reminder_widget(self, reminder):
-        frame = QFrame()
-        layout = QHBoxLayout(frame)
-        
-        # Show datetime and text
-        datetime_str = reminder.get('datetime', '')
-        text = reminder.get('text', '')
-        label = QLabel(f"{datetime_str}\n{text}")
-        label.setWordWrap(True)
-        layout.addWidget(label)
-        
-        # Delete button
-        delete_btn = QPushButton("Delete")
-        delete_btn.clicked.connect(lambda: self.delete_reminder(reminder, frame))
-        layout.addWidget(delete_btn)
-        
-        self.list_layout.addWidget(frame)
-    
-    def delete_reminder(self, reminder, frame):
-        if reminder in self.parent_widget.data['reminders']:
-            self.parent_widget.data['reminders'].remove(reminder)
+            self.load_todos()
+
+    def toggle_todo(self, todo, state):
+        todo['completed'] = (state == Qt.CheckState.Checked.value)
+        self.parent_widget.save_data()
+        # Update the label style
+        frame = self.sender().parent()
+        label = frame.findChild(QLabel)
+        if label:
+            if todo['completed']:
+                label.setStyleSheet("text-decoration: line-through; color: gray;")
+            else:
+                label.setStyleSheet("")
+
+    def delete_todo(self, todo, frame):
+        if todo in self.parent_widget.data['todos']:
+            self.parent_widget.data['todos'].remove(todo)
             self.parent_widget.save_data()
             frame.deleteLater()
-            
-            # Show "No reminders" if list is empty
-            if not self.parent_widget.data['reminders']:
-                label = QLabel("No reminders")
+            # Show "No todos" if list is empty
+            if not self.parent_widget.data['todos']:
+                label = QLabel("No todos yet")
                 label.setStyleSheet("color: gray;")
                 self.list_layout.addWidget(label)
 
@@ -310,12 +298,36 @@ class SettingsDialog(QDialog):
         size_layout.addWidget(self.size_slider)
         layout.addLayout(size_layout)
         
+        # Volume setting
+        volume_layout = QHBoxLayout()
+        self.volume_slider = QSpinBox()
+        self.volume_slider.setRange(0, 100)
+        self.volume_slider.setValue(int(parent.audio_output.volume() * 100) if parent else 100)
+        self.volume_slider.setSuffix("%")
+        volume_layout.addWidget(QLabel("Sound Volume:"))
+        volume_layout.addWidget(self.volume_slider)
+        layout.addLayout(volume_layout)
+        
         # OK button
         ok_button = QPushButton('Apply')
         ok_button.clicked.connect(self.accept)
         layout.addWidget(ok_button)
         
         self.setLayout(layout)
+
+    def accept(self):
+        if self.parent():
+            self.parent().move_speed = self.speed_input.value()
+            self.parent().follow_mouse = self.follow_checkbox.isChecked()
+            new_size = self.size_slider.value()
+            if new_size != self.parent().pet_size:
+                self.parent().pet_size = new_size
+                self.parent().update_pet_size()
+                self.parent().data['pet_size'] = self.parent().pet_size
+                self.parent().save_data()
+            # Apply volume setting
+            self.parent().audio_output.setVolume(self.volume_slider.value() / 100.0)
+        super().accept()
 
 class PeriodDialog(QDialog):
     def __init__(self, parent=None):
@@ -620,14 +632,9 @@ class DesktopPet(QWidget):
         
         # Store dialog instances
         self.settings_dialog = None
-        self.reminder_dialog = None
+        self.todo_dialog = None
         self.notes_dialog = None
         self.period_dialog = None
-        
-        # Set up reminder checker
-        self.reminder_timer = QTimer(self)
-        self.reminder_timer.timeout.connect(self.check_reminders)
-        self.reminder_timer.start(60000)  # Check every minute
         
         # Set up global mouse tracking
         self.global_timer = QTimer(self)
@@ -718,7 +725,7 @@ class DesktopPet(QWidget):
             self.data = {
                 'notes': [],
                 'period_records': [],
-                'reminders': [],
+                'todos': [],
                 'pet_size': 100
             }
     
@@ -820,19 +827,18 @@ class DesktopPet(QWidget):
         """Clean up when closing"""
         self.global_timer.stop()
         self.move_timer.stop()
-        self.reminder_timer.stop()
         self.save_data()
         super().closeEvent(event)
 
     def cleanup(self):
         """Clean up resources and save data"""
-        if self.settings_dialog:
+        if hasattr(self, 'settings_dialog') and self.settings_dialog:
             self.settings_dialog.close()
-        if self.reminder_dialog:
-            self.reminder_dialog.close()
-        if self.notes_dialog:
+        if hasattr(self, 'todo_dialog') and self.todo_dialog:
+            self.todo_dialog.close()
+        if hasattr(self, 'notes_dialog') and self.notes_dialog:
             self.notes_dialog.close()
-        if self.period_dialog:
+        if hasattr(self, 'period_dialog') and self.period_dialog:
             self.period_dialog.close()
         
         # Stop and release media player
@@ -840,7 +846,6 @@ class DesktopPet(QWidget):
         self.media_player.setSource(QUrl())
         self.global_timer.stop()
         self.move_timer.stop()
-        self.reminder_timer.stop()
         self.save_data()
         QApplication.quit()
 
@@ -848,21 +853,14 @@ class DesktopPet(QWidget):
         """Handle right-click menu"""
         menu = QMenu(self)
         
-        # Notes submenu
-        notes_menu = menu.addMenu("Notes")
-        notes_menu.addAction("Add Note", self.show_notes)
-        notes_menu.addAction("View Notes", self.show_notes)
+        # Notes
+        menu.addAction("Notes", self.show_notes)
         
-        # Period tracking submenu
-        period_menu = menu.addMenu("Period Tracking")
-        period_menu.addAction("Manage Period Records", self.show_period_dialog)
+        # Period tracking
+        menu.addAction("Period Tracking", self.show_period_dialog)
         
-        # Reminders submenu
-        reminders_menu = menu.addMenu("Reminders")
-        reminders_menu.addAction("Manage Reminders", self.show_reminders)
-        
-        # Timer
-        # menu.addAction("Timer", self.show_timer)  # Commented out timer menu item
+        # Todo List
+        menu.addAction("Todo List", self.show_todo_list)
         
         # Settings
         menu.addAction("Settings", self.show_settings)
@@ -873,11 +871,14 @@ class DesktopPet(QWidget):
         
         menu.exec(event.globalPos())
 
-    def show_reminders(self):
-        if not self.reminder_dialog:
-            self.reminder_dialog = ReminderDialog(self)
-        self.reminder_dialog.show()
-        self.reminder_dialog.raise_()
+    def show_todo_list(self):
+        """Show todo list dialog"""
+        logging.info("show_todo_list called")
+        try:
+            dialog = TodoListDialog(self)
+            dialog.exec()  # Show modally for testing
+        except Exception as e:
+            logging.error(f"Exception in show_todo_list: {e}\n{traceback.format_exc()}")
 
     def show_notes(self):
         if not self.notes_dialog:
@@ -906,30 +907,6 @@ class DesktopPet(QWidget):
                 # Save size to data
                 self.data['pet_size'] = self.pet_size
                 self.save_data()
-
-    def check_reminders(self):
-        """Check for due reminders"""
-        current_time = datetime.now()
-        reminders_to_remove = []
-        
-        for reminder in self.data['reminders']:
-            if 'datetime' not in reminder:
-                continue
-                
-            try:
-                reminder_time = datetime.strptime(reminder['datetime'], "%Y-%m-%d %H:%M:%S")
-                if reminder_time <= current_time:
-                    QMessageBox.information(None, "Reminder!", reminder['text'])
-                    reminders_to_remove.append(reminder)
-            except (ValueError, TypeError):
-                continue
-        
-        # Remove triggered reminders
-        for reminder in reminders_to_remove:
-            self.data['reminders'].remove(reminder)
-        
-        if reminders_to_remove:
-            self.save_data()
 
     def handle_media_status(self, status):
         """Handle media status changes for looping"""
