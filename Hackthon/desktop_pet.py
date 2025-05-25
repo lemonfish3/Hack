@@ -218,6 +218,7 @@ class NotesDialog(ScrollableDialog):
         if not notes:
             label = QLabel("No notes")
             label.setStyleSheet("color: gray;")
+            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             self.list_layout.addWidget(label)
         else:
             for note in notes:
@@ -230,7 +231,14 @@ class NotesDialog(ScrollableDialog):
             note = {"timestamp": timestamp, "text": text}
             self.parent_widget.data['notes'].append(note)
             self.parent_widget.save_data()
-            self.add_note_widget(note)
+            
+            # Clear existing notes and reload
+            while self.list_layout.count():
+                item = self.list_layout.takeAt(0)
+                if item.widget():
+                    item.widget().deleteLater()
+            
+            self.load_notes()
             self.text_edit.clear()
     
     def add_note_widget(self, note):
@@ -261,6 +269,7 @@ class NotesDialog(ScrollableDialog):
             if not self.parent_widget.data['notes']:
                 label = QLabel("No notes")
                 label.setStyleSheet("color: gray;")
+                label.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.list_layout.addWidget(label)
 
 class SettingsDialog(QDialog):
@@ -297,18 +306,25 @@ class PeriodDialog(QDialog):
         super().__init__(parent, Qt.WindowType.Window)
         self.parent_widget = parent
         self.setWindowTitle("Period Tracking")
-        self.setMinimumSize(500, 600)  # Adjusted size for single calendar
+        self.setMinimumSize(400, 500)  # Reduced overall size
         
+        # Initialize date selection variables
+        self.start_date = None
+        self.end_date = None
+        self.is_selecting_start = True
+        
+        # Main layout
         layout = QVBoxLayout(self)
         layout.setSpacing(20)
         
-        # Date selection frame
-        date_frame = QFrame()
-        date_layout = QVBoxLayout(date_frame)
+        # Instructions label
+        instructions = QLabel("Click on calendar to select start date, then end date")
+        instructions.setStyleSheet("color: #6A5ACD; font-weight: bold;")
+        layout.addWidget(instructions)
         
         # Calendar with styling
         self.calendar = QCalendarWidget()
-        self.calendar.setMinimumSize(400, 400)
+        self.calendar.setMinimumSize(300, 300)  # Reduced calendar size
         self.calendar.setStyleSheet("""
             QCalendarWidget {
                 background-color: #E6E6FA;
@@ -319,9 +335,9 @@ class PeriodDialog(QDialog):
                 color: #6A5ACD;
                 background-color: transparent;
                 border: none;
-                font-size: 16px;
+                font-size: 14px;  /* Reduced font size */
                 font-weight: bold;
-                padding: 5px;
+                padding: 3px;  /* Reduced padding */
             }
             QCalendarWidget QToolButton:hover {
                 background-color: #D8D8F0;
@@ -335,10 +351,21 @@ class PeriodDialog(QDialog):
                 background-color: #FFFFFF;
                 border: 1px solid #C8C8E6;
                 border-radius: 3px;
-                padding: 3px;
+                padding: 2px;  /* Reduced padding */
+            }
+            QCalendarWidget QAbstractItemView:enabled {
+                background-color: #E6E6FA;
+                color: #323250;
+                selection-background-color: #6A5ACD;
+                selection-color: white;
+                font-size: 12px;  /* Reduced font size */
+            }
+            QCalendarWidget QAbstractItemView:disabled {
+                color: #A0A0A0;
             }
         """)
-        date_layout.addWidget(self.calendar)
+        self.calendar.clicked.connect(self.handle_date_selection)
+        layout.addWidget(self.calendar)
         
         # Record button with styling
         record_button = QPushButton("Record Period")
@@ -347,25 +374,32 @@ class PeriodDialog(QDialog):
                 background-color: #6A5ACD;
                 color: white;
                 font-size: 14px;
-                padding: 10px;
+                padding: 8px;  /* Reduced padding */
                 border-radius: 5px;
             }
             QPushButton:hover {
                 background-color: #5A4ABD;
             }
+            QPushButton:disabled {
+                background-color: #C8C8E6;
+                color: #A0A0A0;
+            }
         """)
         record_button.clicked.connect(self.record_period)
-        date_layout.addWidget(record_button)
+        record_button.setEnabled(False)  # Disable until both dates are selected
+        self.record_button = record_button
+        layout.addWidget(record_button)
         
-        layout.addWidget(date_frame)
+        # Selected date range display - moved to bottom
+        self.range_label = QLabel("Selected Range: None")
+        self.range_label.setStyleSheet("color: #6A5ACD; font-weight: bold; font-size: 14px;")
+        self.range_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.range_label)
         
         # History section
-        history_frame = QFrame()
-        history_layout = QVBoxLayout(history_frame)
-        
         history_label = QLabel("History:")
         history_label.setStyleSheet("font-weight: bold; font-size: 14px;")
-        history_layout.addWidget(history_label)
+        layout.addWidget(history_label)
         
         # Scrollable area for history
         scroll = QScrollArea()
@@ -376,17 +410,66 @@ class PeriodDialog(QDialog):
                 border-radius: 5px;
             }
         """)
-        history_layout.addWidget(scroll)
+        layout.addWidget(scroll)
         
         history_widget = QWidget()
         self.history_layout = QVBoxLayout(history_widget)
         self.history_layout.setSpacing(10)
         scroll.setWidget(history_widget)
         
-        layout.addWidget(history_frame)
-        
         # Load history
         self.load_history()
+    
+    def handle_date_selection(self, date):
+        if self.is_selecting_start:
+            self.start_date = date
+            self.is_selecting_start = False
+            self.range_label.setText(f"Selected Range: {date.toString('yyyy-MM-dd')} to ...")
+            self.highlight_date_range()
+        else:
+            self.end_date = date
+            if self.end_date < self.start_date:
+                # Swap dates if end date is before start date
+                self.start_date, self.end_date = self.end_date, self.start_date
+            
+            self.range_label.setText(f"Selected Range: {self.start_date.toString('yyyy-MM-dd')} to {self.end_date.toString('yyyy-MM-dd')}")
+            self.record_button.setEnabled(True)
+            self.is_selecting_start = True
+            self.highlight_date_range()
+    
+    def highlight_date_range(self):
+        if not self.start_date:
+            return
+            
+        # Reset calendar style
+        base_style = self.calendar.styleSheet()
+        self.calendar.setStyleSheet(base_style)
+        
+        # Add highlighting for the range
+        if self.end_date:
+            current_date = self.start_date
+            while current_date <= self.end_date:
+                date_str = current_date.toString("yyyy-MM-dd")
+                style = self.calendar.styleSheet()
+                style += f"""
+                    QCalendarWidget QAbstractItemView:enabled[date="{date_str}"] {{
+                        background-color: #6A5ACD;
+                        color: white;
+                    }}
+                """
+                self.calendar.setStyleSheet(style)
+                current_date = current_date.addDays(1)
+        else:
+            # Highlight only start date
+            date_str = self.start_date.toString("yyyy-MM-dd")
+            style = self.calendar.styleSheet()
+            style += f"""
+                QCalendarWidget QAbstractItemView:enabled[date="{date_str}"] {{
+                    background-color: #6A5ACD;
+                    color: white;
+                }}
+            """
+            self.calendar.setStyleSheet(style)
     
     def load_history(self):
         records = self.parent_widget.data.get('period_records', [])
@@ -428,12 +511,13 @@ class PeriodDialog(QDialog):
             QMessageBox.information(self, "Success", "Record deleted successfully!")
     
     def record_period(self):
-        selected_date = self.calendar.selectedDate().toString("yyyy-MM-dd")
+        if not self.start_date or not self.end_date:
+            return
         
         # Create new record
         new_record = {
-            'start_date': selected_date,
-            'end_date': selected_date
+            'start_date': self.start_date.toString("yyyy-MM-dd"),
+            'end_date': self.end_date.toString("yyyy-MM-dd")
         }
         
         # Initialize period_records if it doesn't exist
@@ -443,6 +527,16 @@ class PeriodDialog(QDialog):
         # Add the new record
         self.parent_widget.data['period_records'].append(new_record)
         self.parent_widget.save_data()
+        
+        # Reset selection
+        self.start_date = None
+        self.end_date = None
+        self.is_selecting_start = True
+        self.range_label.setText("Selected Range: None")
+        self.record_button.setEnabled(False)
+        
+        # Reset calendar highlighting
+        self.calendar.setStyleSheet(self.calendar.styleSheet())
         
         # Clear and reload history
         while self.history_layout.count():
@@ -457,22 +551,21 @@ class DesktopPet(QWidget):
     def __init__(self):
         super().__init__()
         
-        # Set object name for styling
+        # Set object name for styling BEFORE applying any styles
         self.setObjectName("DesktopPet")
         
-        # Remove window frame and keep on top
+        # Remove window frame, keep on top, and remove shadow
         self.setWindowFlags(
             Qt.WindowType.FramelessWindowHint |  # No frame
             Qt.WindowType.WindowStaysOnTopHint | # Always on top
-            Qt.WindowType.Tool                   # No taskbar icon
+            Qt.WindowType.Tool |                # No taskbar icon
+            Qt.WindowType.NoDropShadowWindowHint # Remove shadow
         )
         
-        # Enable transparency
+        # Enable transparency and disable window shadow
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        # Explicitly set transparent palette for the main window
-        transparent_palette = QPalette()
-        transparent_palette.setColor(QPalette.Window, QColor(0, 0, 0, 0))
-        self.setPalette(transparent_palette)
+        self.setAttribute(Qt.WidgetAttribute.WA_NoSystemBackground)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
         # Create label for the pet
         self.pet_label = QLabel(self)
@@ -502,7 +595,6 @@ class DesktopPet(QWidget):
         self.load_data()
         
         # Store dialog instances
-        # self.timer_dialog = None  # Commented out timer dialog
         self.settings_dialog = None
         self.reminder_dialog = None
         self.notes_dialog = None
@@ -517,6 +609,16 @@ class DesktopPet(QWidget):
         self.global_timer = QTimer(self)
         self.global_timer.timeout.connect(self.check_global_mouse)
         self.global_timer.start(100)  # Check every 100ms
+        
+        # Apply additional styling specific to the pet window
+        self.setStyleSheet("""
+            QWidget#DesktopPet {
+                background-color: transparent;
+            }
+            QLabel {
+                background-color: transparent;
+            }
+        """)
         
         # Show the widget
         self.show()
@@ -637,9 +739,6 @@ class DesktopPet(QWidget):
 
     def cleanup(self):
         """Clean up resources and save data"""
-        # if self.timer_dialog:  # Commented out timer cleanup
-        #     self.timer_dialog.timer.stop()  # Make sure to stop the timer
-        #     self.timer_dialog.close()
         if self.settings_dialog:
             self.settings_dialog.close()
         if self.reminder_dialog:
@@ -753,13 +852,14 @@ if __name__ == '__main__':
     
     app = QApplication(sys.argv)
     
-    # Apply the light purple theme
+    # Apply the light purple theme BEFORE creating any widgets
     apply_light_purple_theme()
     
     # Suppress native menu bar on macOS
     if sys.platform == 'darwin':
         app.setAttribute(Qt.ApplicationAttribute.AA_DontUseNativeMenuBar)
     
+    # Create the pet after theme is applied
     pet = DesktopPet()
     
     # Allow clean shutdown on Ctrl+C
